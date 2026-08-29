@@ -1,7 +1,5 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Scenic", "Scenic\Scenic.fsproj", "{87748438-053B-40CB-BC9B-9362EE9C9C9C}"
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "External", "External", "{D20BDD28-B3CE-4F76-AFA3-2AE30B5010A3}"
 EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "CommonResourceFormats.AssetStore", "..\CommonResourceFormats\src\CommonResourceFormats.AssetStore\CommonResourceFormats.AssetStore.fsproj", "{A237E04E-168D-417C-9D88-99EC630F2D65}"
@@ -18,16 +16,16 @@ Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Scenic.Editor", "src\Scenic
 EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Scenic.CLI", "src\Scenic.CLI\Scenic.CLI.fsproj", "{A972A73F-14D5-48F2-BB07-0C2B6516B388}"
 EndProject
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "FsToolbox.OpenGL", "..\FsToolbox\FsToolbox.OpenGL\FsToolbox.OpenGL.fsproj", "{4C4FC87C-9E01-4747-9E5A-856ECF59A7B0}"
+EndProject
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "FsToolbox.GameDevelopment", "..\FsToolbox\FsToolbox.GameDevelopment\FsToolbox.GameDevelopment.fsproj", "{8952F72A-013C-49A7-91FA-FFB856C5616A}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{87748438-053B-40CB-BC9B-9362EE9C9C9C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{87748438-053B-40CB-BC9B-9362EE9C9C9C}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{87748438-053B-40CB-BC9B-9362EE9C9C9C}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{87748438-053B-40CB-BC9B-9362EE9C9C9C}.Release|Any CPU.Build.0 = Release|Any CPU
 		{A237E04E-168D-417C-9D88-99EC630F2D65}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{A237E04E-168D-417C-9D88-99EC630F2D65}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A237E04E-168D-417C-9D88-99EC630F2D65}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -56,11 +54,21 @@ Global
 		{A972A73F-14D5-48F2-BB07-0C2B6516B388}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A972A73F-14D5-48F2-BB07-0C2B6516B388}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A972A73F-14D5-48F2-BB07-0C2B6516B388}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4C4FC87C-9E01-4747-9E5A-856ECF59A7B0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4C4FC87C-9E01-4747-9E5A-856ECF59A7B0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4C4FC87C-9E01-4747-9E5A-856ECF59A7B0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4C4FC87C-9E01-4747-9E5A-856ECF59A7B0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8952F72A-013C-49A7-91FA-FFB856C5616A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8952F72A-013C-49A7-91FA-FFB856C5616A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8952F72A-013C-49A7-91FA-FFB856C5616A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8952F72A-013C-49A7-91FA-FFB856C5616A}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{A237E04E-168D-417C-9D88-99EC630F2D65} = {D20BDD28-B3CE-4F76-AFA3-2AE30B5010A3}
 		{C577F2AC-ED40-459D-B917-90357827A5E3} = {D20BDD28-B3CE-4F76-AFA3-2AE30B5010A3}
 		{47B2AC71-179F-4BE8-97C4-46EB33B549D2} = {D20BDD28-B3CE-4F76-AFA3-2AE30B5010A3}
 		{D81FDED9-C22B-4E24-B828-6F841FBE0006} = {D20BDD28-B3CE-4F76-AFA3-2AE30B5010A3}
+		{4C4FC87C-9E01-4747-9E5A-856ECF59A7B0} = {D20BDD28-B3CE-4F76-AFA3-2AE30B5010A3}
+		{8952F72A-013C-49A7-91FA-FFB856C5616A} = {D20BDD28-B3CE-4F76-AFA3-2AE30B5010A3}
 	EndGlobalSection
 EndGlobal

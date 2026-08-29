@@ -40,8 +40,66 @@
         
         <Style Selector="TabItem">
             <Setter Property="FontSize" Value="12" />
-            <Setter Property="Padding" Value="5" />   
+            <Setter Property="Padding" Value="5" /> 
+            <Setter Property="Foreground" Value="{StaticResource ScenicForegroundBrush}"></Setter>
+       
         </Style>
+       
+        <Style Selector="TabItem:selected">
+            <Setter Property="Background" Value="{StaticResource ScenicCommentBrush}"></Setter>
+        </Style>
+        
+        <Style Selector="TextBlock">
+            <Setter Property="Foreground" Value="{StaticResource ScenicForeground}"></Setter>
+        </Style>
+        
+        <Style Selector="TextBlock.comment">
+            <Setter Property="Background" Value="{StaticResource ScenicComment}"></Setter>
+            <Setter Property="FontFamily" Value="Consolas"></Setter>
+        </Style>
+        
+        <Style Selector="TextBlock.error">
+            <Setter Property="Foreground" Value="{StaticResource ScenicRedBrush}"></Setter>
+        </Style>
+        <Style Selector="TextBlock.warn">
+            <Setter Property="Foreground" Value="{StaticResource ScenicOrangeBrush}"></Setter>
+        </Style>
+        
+        
+        <Style Selector="Label.comment">
+            <Setter Property="Background" Value="{StaticResource ScenicComment}"></Setter>
+            <Setter Property="FontFamily" Value="Consolas"></Setter>
+        </Style>
+        
+        <Style Selector="Label.success">
+            <Setter Property="Background" Value="{StaticResource ScenicGreenBrush}"></Setter>
+            <Setter Property="Foreground" Value="{StaticResource ScenicBackground}"></Setter>
+        </Style>
+        
+        <Style Selector="Label.error">
+            <Setter Property="Background" Value="{StaticResource ScenicRedBrush}"></Setter>
+            <Setter Property="Foreground" Value="{StaticResource ScenicBackground}"></Setter>
+            
+        </Style>
+        
+        <Style Selector="Label.warning">
+            <Setter Property="Background" Value="{StaticResource ScenicOrangeBrush}"></Setter>
+            <Setter Property="Foreground" Value="{StaticResource ScenicBackground}"></Setter>
+            
+        </Style>
+        
+        <Style Selector="Label.info">
+            <Setter Property="Background" Value="{StaticResource ScenicCyanBrush}"></Setter>
+            <Setter Property="Foreground" Value="{StaticResource ScenicBackground}"></Setter>
+            
+        </Style>
+        
+        <Style Selector="Label.trace">
+            <Setter Property="Background" Value="{StaticResource ScenicPurpleBrush}"></Setter>
+            <Setter Property="Foreground" Value="{StaticResource ScenicBackground}"></Setter>
+        </Style>
+
+        
     </Application.Styles>
 
 </Application>

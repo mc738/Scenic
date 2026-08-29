@@ -2,6 +2,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:views="clr-namespace:Scenic.Editor.Views"
         mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
         x:Class="Scenic.Editor.MainWindow"
         Title="Scenic.Editor">
@@ -9,7 +10,7 @@
         <Grid.RowDefinitions>
             <RowDefinition Height="20"></RowDefinition>
             <RowDefinition Height="*"></RowDefinition>
-            <RowDefinition Height="50"></RowDefinition>
+            <RowDefinition Height="20"></RowDefinition>
         </Grid.RowDefinitions>
         <Menu Grid.Row="0">
             <MenuItem Header="_File">
@@ -27,15 +28,22 @@
                     <TabItem Header="Scene">
                         <Grid VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Background="GreenYellow">
                             <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="200"></ColumnDefinition>
                                 <ColumnDefinition Width="*"></ColumnDefinition>
                             </Grid.ColumnDefinitions>
-                            <StackPanel Background="GreenYellow" Grid.Column="0" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"></StackPanel>
-                            <StackPanel Background="Blue"  Grid.Column="1" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"></StackPanel>
+                            <ContentControl x:Name="SceneEditorHole"></ContentControl>
                         </Grid>
                     </TabItem >
                     <TabItem Header="tab 2">
-                        <Label>Hello, World</Label>
+                        <StackPanel>
+                            <Label Classes="comment">
+                                This is a comment
+                            </Label> 
+                            <Label Classes="error">This is an error</Label>
+                            <Label Classes="warning">This is a warning</Label>
+                            <Label Classes="success">This is a success</Label>
+                            <Label Classes="info">This is info</Label>
+                            <Label Classes="trace">This is a trace</Label>
+                        </StackPanel>
                     </TabItem>
                 </TabControl>
             </Grid>
