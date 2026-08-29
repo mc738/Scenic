@@ -1,0 +1,46 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+        x:Class="Scenic.Editor.MainWindow"
+        Title="Scenic.Editor">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="20"></RowDefinition>
+            <RowDefinition Height="*"></RowDefinition>
+            <RowDefinition Height="50"></RowDefinition>
+        </Grid.RowDefinitions>
+        <Menu Grid.Row="0">
+            <MenuItem Header="_File">
+                <MenuItem Header="_Edit"></MenuItem>
+                <MenuItem Header="_New"></MenuItem>
+                <MenuItem Header="_Open"></MenuItem>
+                <MenuItem Header="_Save"></MenuItem>
+            </MenuItem>
+            <MenuItem Header="_Edit"></MenuItem>
+            <MenuItem Header="_About"></MenuItem>
+        </Menu>
+        <Border Padding="5" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Grid.Row="1">
+            <Grid VerticalAlignment="Stretch" Background="White" HorizontalAlignment="Stretch">
+                <TabControl VerticalAlignment="Stretch" HorizontalAlignment="Stretch">
+                    <TabItem Header="Scene">
+                        <Grid VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Background="GreenYellow">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="200"></ColumnDefinition>
+                                <ColumnDefinition Width="*"></ColumnDefinition>
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Background="GreenYellow" Grid.Column="0" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"></StackPanel>
+                            <StackPanel Background="Blue"  Grid.Column="1" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"></StackPanel>
+                        </Grid>
+                    </TabItem >
+                    <TabItem Header="tab 2">
+                        <Label>Hello, World</Label>
+                    </TabItem>
+                </TabControl>
+            </Grid>
+        </Border>
+        
+    </Grid>
+    
+</Window>

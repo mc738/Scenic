@@ -1,0 +1,47 @@
+<Application xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="Scenic.Editor.App"
+             RequestedThemeVariant="Dark">
+    <!-- "Default" ThemeVariant follows system theme variant. "Dark" or "Light" are other available options. -->
+
+    <Application.Resources>
+        <Color x:Key="ScenicBackground">#282a36</Color>
+        <Color x:Key="ScenicSelection">#282a36</Color>
+        <Color x:Key="ScenicForeground">#f8f8f2</Color>
+        <Color x:Key="ScenicComment">#6272a4</Color>
+        <Color x:Key="ScenicCyan">#8be9fd</Color>
+        <Color x:Key="ScenicGreen">#50fa7b</Color>
+        <Color x:Key="ScenicOrange">#ffb86c</Color>
+        <Color x:Key="ScenicPink">#ff79c6</Color>
+        <Color x:Key="ScenicPurple">#bd93f9</Color>
+        <Color x:Key="ScenicRed">#ff5555</Color>
+        <Color x:Key="ScenicYellow">#f1fa8c</Color>
+    
+        <SolidColorBrush x:Key="ScenicBackgroundBrush" Color="{StaticResource ScenicBackground}"></SolidColorBrush>
+        <SolidColorBrush x:Key="ScenicSelectionBrush" Color="{StaticResource ScenicSelection}"></SolidColorBrush>
+        <SolidColorBrush x:Key="ScenicForegroundBrush" Color="{StaticResource ScenicForeground}"></SolidColorBrush>
+        <SolidColorBrush x:Key="ScenicCommentBrush" Color="{StaticResource ScenicComment}"></SolidColorBrush>
+        <SolidColorBrush x:Key="ScenicCyanBrush" Color="{StaticResource ScenicCyan}"></SolidColorBrush>
+        <SolidColorBrush x:Key="ScenicGreenBrush" Color="{StaticResource ScenicGreen}"></SolidColorBrush>
+        <SolidColorBrush x:Key="ScenicOrangeBrush" Color="{StaticResource ScenicOrange}"></SolidColorBrush>
+        <SolidColorBrush x:Key="ScenicPinkBrush" Color="{StaticResource ScenicPink}"></SolidColorBrush>
+        <SolidColorBrush x:Key="ScenicPurpleBrush" Color="{StaticResource ScenicPurple}"></SolidColorBrush>
+        <SolidColorBrush x:Key="ScenicRedBrush" Color="{StaticResource ScenicRed}"></SolidColorBrush>
+        <SolidColorBrush x:Key="ScenicYellowBrush" Color="{StaticResource ScenicYellow}"></SolidColorBrush>
+    </Application.Resources>
+    
+    <Application.Styles>
+        <SimpleTheme />
+        
+        
+        <Style Selector="TabControl">
+            <Setter Property="Background" Value="{StaticResource ScenicBackgroundBrush}"></Setter>
+        </Style>
+        
+        <Style Selector="TabItem">
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="Padding" Value="5" />   
+        </Style>
+    </Application.Styles>
+
+</Application>
