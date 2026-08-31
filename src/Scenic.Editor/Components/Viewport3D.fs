@@ -115,6 +115,8 @@ type Viewport3D(ctx: EditorContext, host: IViewportHost) as this =
     //let mutable voa: DebugPlane = Operators.Unchecked.defaultof<DebugPlane>
     //let mutable gridPlane: GridPlane = Operators.Unchecked.defaultof<GridPlane>
 
+    
+    
     let mutable scene: EditorSceneInstance option = Option.None
 
     do
@@ -124,6 +126,9 @@ type Viewport3D(ctx: EditorContext, host: IViewportHost) as this =
 
     member _.GL = if initalized then Some gl else None
 
+    member _.CameraPosition = camera.Position
+    
+    
     override this.OnOpenGlInit(gli: GlInterface) =
 
         gl <- GL.GetApi(gli.GetProcAddress)

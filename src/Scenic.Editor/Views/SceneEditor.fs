@@ -1,6 +1,7 @@
 ﻿namespace Scenic.Editor.Views
 
 open System
+open System.Windows.Input
 open Avalonia.Controls
 open Avalonia.Layout
 open Avalonia.Media
@@ -12,7 +13,25 @@ open Scenic.Editor.Core
 open Scenic.Editor.Core.Domain
 open Scenic.Editor.Core.Input
 open Silk.NET.OpenGL
+open Avalonia.Interactivity
 
+
+type RelayCommand(action: unit -> unit, canExecute: unit -> bool) =
+    interface ICommand with
+        member this.CanExecute(parameter) =
+            canExecute()
+
+        member this.add_CanExecuteChanged(value: EventHandler) =
+            ()
+
+
+        member this.remove_CanExecuteChanged(value: EventHandler) =
+            ()
+
+        member this.Execute(parameter) = action()
+
+
+    member _.Test = ()
 
 type SceneEditor(ctx: EditorContext) as this =
     inherit DockPanel()
@@ -20,8 +39,13 @@ type SceneEditor(ctx: EditorContext) as this =
     let viewport = Viewport3D(ctx, this)
 
     let layout = StackPanel()
-    
+
+
+    let treeView = TreeView()
+
     let mutable debugPlane = Operators.Unchecked.defaultof<DebugPlane>
+    
+    let mutable editorGrid = Operators.Unchecked.defaultof<EditorGrid>
 
     //let mutable cm = Operators.Unchecked.defaultof<ContentManager>
     let mutable scene = Option<EditorSceneInstance>.None
@@ -29,7 +53,7 @@ type SceneEditor(ctx: EditorContext) as this =
 
     // TEST
     //let tf = TransformControl()
-    
+
     do
         layout.HorizontalAlignment <- HorizontalAlignment.Stretch
         layout.VerticalAlignment <- VerticalAlignment.Stretch
@@ -41,11 +65,56 @@ type SceneEditor(ctx: EditorContext) as this =
         sidePanel.Width <- 250
         DockPanel.SetDock(sidePanel, Dock.Left)
 
+
+        treeView.VerticalAlignment <- VerticalAlignment.Stretch
+        treeView.HorizontalAlignment <- HorizontalAlignment.Stretch
         
-        let sidePanelLayout = StackPanel()
+        let sidePanelLayout = Grid()
+        
+        sidePanelLayout.VerticalAlignment <- VerticalAlignment.Stretch
+        sidePanelLayout.HorizontalAlignment <- HorizontalAlignment.Stretch
+        
         sidePanel.Child <- sidePanelLayout
-        
+
         //sidePanelLayout.Children.Add(tf)
+
+        sidePanelLayout.Children.Add(treeView)
+        
+
+        let sidePanelContextMenu = ContextMenu()
+
+        let menuItem = MenuItem()
+
+        menuItem.Header <- "Add"
+        menuItem.Name <- "Add"
+
+        
+        let rec addTreeViewItem (parent: TreeViewItem option) (id: Guid) =
+            let item = TreeViewItem()
+            
+            
+            item.Header <- "New Item"
+            
+            let itemContextMenu = ContextMenu()
+            
+            
+            let addItem = MenuItem()
+            addItem.Header <- "Add child"
+            addItem.Command <- RelayCommand((fun _ -> printfn "Add child to %s" (id.ToString("n")); addTreeViewItem (Some item) (Guid.NewGuid())), (fun _ -> true))
+
+            itemContextMenu.Items.Add(addItem) |> ignore
+            item.ContextMenu <- itemContextMenu
+           
+            match parent with
+            | None -> treeView.Items.Add(item) |> ignore
+            | Some p -> p.Items.Add(item) |> ignore
+            
+        menuItem.Command <- RelayCommand((fun _ -> addTreeViewItem None (Guid.NewGuid())), (fun _ -> true))
+
+        sidePanelContextMenu.Items.Add(menuItem)
+
+
+        sidePanel.ContextMenu <- sidePanelContextMenu
 
         viewport.Height <- this.Bounds.Height
         viewport.Width <- this.Bounds.Width
@@ -128,17 +197,23 @@ type SceneEditor(ctx: EditorContext) as this =
             ()
 
         member this.RenderScene(gl, view, projection) =
-            debugPlane.Bind(view, projection)
-            render.DrawElements(PrimitiveType.Triangles, DrawElementsType.UnsignedInt, 6u)
             
+            gl.Enable(EnableCap.Blend)
+            gl.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha)
+            
+            editorGrid.Draw(view, projection, viewport.CameraPosition)
+            
+            
+            //debugPlane.Bind(view, projection)
+            //render.DrawElements(PrimitiveType.Triangles, DrawElementsType.UnsignedInt, 6u)
+
         member this.ViewportLoaded(gl) =
             debugPlane <- DebugPlane(gl)
-            render <- Render(gl)
-        
-            ()
+            render <- Render(gl)            
+            editorGrid <- EditorGrid(gl)
 
-                
+
+
     member this.FocusNow() =
         // Ensure focus happens after layout
         Dispatcher.UIThread.Post(fun () -> this.Focus() |> ignore)
-

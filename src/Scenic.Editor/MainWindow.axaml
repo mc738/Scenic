@@ -18,15 +18,17 @@
                 <MenuItem Header="_New"></MenuItem>
                 <MenuItem Header="_Open"></MenuItem>
                 <MenuItem Header="_Save"></MenuItem>
+                <Separator></Separator>
+                <MenuItem Header="New scene" Click="AddNewScene"></MenuItem>
             </MenuItem>
             <MenuItem Header="_Edit"></MenuItem>
             <MenuItem Header="_About"></MenuItem>
         </Menu>
         <Border Padding="5" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Grid.Row="1">
             <Grid VerticalAlignment="Stretch" Background="White" HorizontalAlignment="Stretch">
-                <TabControl VerticalAlignment="Stretch" HorizontalAlignment="Stretch">
+                <TabControl x:Name="MainTabControl" VerticalAlignment="Stretch" HorizontalAlignment="Stretch">
                     <TabItem Header="Scene">
-                        <Grid VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Background="GreenYellow">
+                        <Grid VerticalAlignment="Stretch" HorizontalAlignment="Stretch">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*"></ColumnDefinition>
                             </Grid.ColumnDefinitions>
