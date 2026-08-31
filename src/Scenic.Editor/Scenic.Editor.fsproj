@@ -15,6 +15,7 @@
         <Compile Include="Controls\SceneGraphControl.fs" />
         <Compile Include="Views\SceneEditor.fs" />
         <Compile Include="Windows\NewSceneWindow.fs" />
+        <Compile Include="Windows\LoadSceneWindow.fs" />
         <Compile Include="MainWindow.axaml.fs"/>
         <Compile Include="App.axaml.fs"/>
         <Compile Include="Program.fs"/>

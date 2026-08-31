@@ -20,6 +20,7 @@
                 <MenuItem Header="_Save"></MenuItem>
                 <Separator></Separator>
                 <MenuItem Header="New scene" Click="AddNewScene"></MenuItem>
+                <MenuItem Header="Open scene" Click="OpenScene"></MenuItem>
             </MenuItem>
             <MenuItem Header="_Edit"></MenuItem>
             <MenuItem Header="_About"></MenuItem>

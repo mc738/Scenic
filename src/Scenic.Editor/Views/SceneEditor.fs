@@ -40,7 +40,7 @@ type RelayCommand(action: unit -> unit, canExecute: unit -> bool) =
 
     member _.Test = ()
 
-type SceneEditor(ctx: EditorContext, sceneVersionId: EntityId) as this =
+type SceneEditor(ctx: EditorContext, scene: Scene) as this =
     inherit DockPanel()
 
     let viewport = Viewport3D(ctx, this)
@@ -54,7 +54,6 @@ type SceneEditor(ctx: EditorContext, sceneVersionId: EntityId) as this =
     let mutable editorGrid = Operators.Unchecked.defaultof<EditorGrid>
 
     //let mutable cm = Operators.Unchecked.defaultof<ContentManager>
-    let mutable scene = Option<EditorSceneInstance>.None
     let mutable render = Operators.Unchecked.defaultof<Render>
 
     // TEST
@@ -109,6 +108,7 @@ type SceneEditor(ctx: EditorContext, sceneVersionId: EntityId) as this =
         this.Focusable <- true
         this.IsHitTestVisible <- true
         this.Focus() |> ignore
+        
 
         // THIS IS IMPORTANT, or nothing renders but open gl clears.
         this.Background <- Brushes.Transparent
@@ -121,6 +121,9 @@ type SceneEditor(ctx: EditorContext, sceneVersionId: EntityId) as this =
         this.SizeChanged.Add(fun e ->
             viewport.Height <- layout.Bounds.Size.Height
             viewport.Width <- layout.Bounds.Size.Width)
+        
+        
+        this.BuildTreeView()
 
     interface IViewportHost with
         member this.RequestScene() =
@@ -199,6 +202,62 @@ type SceneEditor(ctx: EditorContext, sceneVersionId: EntityId) as this =
 
 
 
+    member this.BuildTreeView() =
+        
+        
+        let rec build (parent: TreeViewItem) (object: SceneObject) =
+            let item = TreeViewItem()
+            
+            item.DataContext <- object.Id
+            item.Header <- object.Name
+            
+            let itemContextMenu = ContextMenu()
+
+            let addItem = MenuItem()
+            addItem.Header <- "Add child"
+            addItem.Command <- RelayCommand((fun _ -> this.AddSceneObject(Some item)), (fun _ -> true))
+
+            itemContextMenu.Items.Add(addItem) |> ignore
+            item.ContextMenu <- itemContextMenu
+            
+            
+            for child in object.Children do
+                build item child
+                
+            
+            parent.Items.Add(item) |> ignore
+        
+        
+        for object in scene.Objects do
+            let item = TreeViewItem()
+                        
+            item.DataContext <- object.Id
+            item.Header <- object.Name
+            
+            let itemContextMenu = ContextMenu()
+
+            let addItem = MenuItem()
+            addItem.Header <- "Add child"
+            addItem.Command <- RelayCommand((fun _ -> this.AddSceneObject(Some item)), (fun _ -> true))
+
+            itemContextMenu.Items.Add(addItem) |> ignore
+            item.ContextMenu <- itemContextMenu
+            
+            for child in object.Children do
+                build item child
+                
+            treeView.Items.Add(item) |> ignore
+            
+            
+            
+        
+        
+        
+        ()
+        
+        
+        
+    
 
     member this.AddSceneObject(parent: TreeViewItem option) =
         let eId = EntityId.Create()
@@ -206,7 +265,7 @@ type SceneEditor(ctx: EditorContext, sceneVersionId: EntityId) as this =
 
         match parent with
         | None ->
-            match ctx.AssetStoreContext.AddSceneObject(sceneVersionId, None, name, Transform.Default) with
+            match ctx.AssetStoreContext.AddSceneObject(scene.VersionId, None, name, Transform.Default) with
             | Error errorValue -> printfn $"Error adding scene object: {errorValue}"
             | Ok eId ->
                 let mutable item = TreeViewItem()
@@ -237,7 +296,7 @@ type SceneEditor(ctx: EditorContext, sceneVersionId: EntityId) as this =
             let pId = value.DataContext :?> EntityId
             
             match
-                ctx.AssetStoreContext.AddSceneObject(sceneVersionId, (Some pId), name, Transform.Default)
+                ctx.AssetStoreContext.AddSceneObject(scene.VersionId, (Some pId), name, Transform.Default)
             with
             | Error errorValue -> printfn $"Error adding scene object: {errorValue}"
             | Ok eId ->

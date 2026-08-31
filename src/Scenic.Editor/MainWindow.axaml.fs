@@ -5,6 +5,7 @@ open Avalonia.Controls
 open Avalonia.Interactivity
 open Avalonia.Layout
 open Avalonia.Markup.Xaml
+open CommonResourceFormats.AssetStore.Core.Domain
 open Scenic.Editor.Core
 open Scenic.Editor.Views
 open Scenic.Editor.Windows
@@ -15,7 +16,7 @@ type MainWindow(ctx: EditorContext) as this =
     let mutable tabControl: TabControl option = None
 
     let newSceneWindow = NewSceneWindow()
-
+    
     do this.InitializeComponent()
 
     member private this.InitializeComponent() =
@@ -52,12 +53,61 @@ type MainWindow(ctx: EditorContext) as this =
                 
                 let newId = ctx.AssetStoreContext.AddScene value
                 
-                let sceneEditor = SceneEditor(ctx, newId.VersionId)
+                let sceneEditor = SceneEditor(ctx, newId)
                 
                 g.Children.Add(sceneEditor)
                 
                 newTab.Content <- g
                 
                 tc.Items.Add(newTab) |> ignore
+        }
+        |> Async.StartImmediate
+
+    member _.OpenScene(sender: obj, e: RoutedEventArgs) =
+        async {
+            let tc =
+                match tabControl with
+                | Some tc -> tc
+                | None ->
+                    let tc = this.FindControl<TabControl>("MainTabControl")
+                    tabControl <- Some tc
+                    tc
+             
+            let loadSceneWindow = LoadSceneWindow(ctx.AssetStoreContext.GetSceneListings())
+                    
+            let! evId = loadSceneWindow.ShowDialog<EntityId option>(this) |> Async.AwaitTask
+            
+            match evId with
+            | None -> ()
+            | Some sceneVersionId ->
+                match ctx.AssetStoreContext.GetSceneVersion(sceneVersionId) with
+                | Error e ->
+                    printfn $"Failed to load scene: {e}"
+                | Ok scene ->
+                    
+                    
+                    
+                    
+                    let newTab = new TabItem(Header = scene.Name)
+                    
+                    let g = Grid()
+                    
+                    g.VerticalAlignment <- VerticalAlignment.Stretch
+                    g.HorizontalAlignment <- HorizontalAlignment.Stretch
+                  
+                    let sceneEditor = SceneEditor(ctx, scene)
+                    
+                    g.Children.Add(sceneEditor)
+                    
+                    newTab.Content <- g
+                    
+                    tc.Items.Add(newTab) |> ignore
+                
+                ()
+            
+            
+            ()
+            
+            
         }
         |> Async.StartImmediate
