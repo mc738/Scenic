@@ -1,6 +1,7 @@
 ﻿namespace Scenic.Editor.Views
 
 open System
+open System.Collections.Generic
 open System.Windows.Input
 open Avalonia.Controls
 open Avalonia.Layout
@@ -20,12 +21,12 @@ open FsToolbox.GameDevelopment.Core.Types
 
 //type SceneObjectTreeViewItem(entityId: EntityId) =
 //    inherit TreeViewItem()
-//    
+//
 //    do
 //        base.Header <- "New object"
 //
 //    member _.EntityId = entityId
-    
+
 type RelayCommand(action: unit -> unit, canExecute: unit -> bool) =
     interface ICommand with
         member this.CanExecute(parameter) = canExecute ()
@@ -56,10 +57,25 @@ type SceneEditor(ctx: EditorContext, scene: Scene) as this =
     //let mutable cm = Operators.Unchecked.defaultof<ContentManager>
     let mutable render = Operators.Unchecked.defaultof<Render>
 
+    let objects = Dictionary<Guid, SceneObject>()
+
+    let objectPanel = ObjectPanel(ctx)
+    
     // TEST
     //let tf = TransformControl()
 
     do
+        let rec traverse (sceneObject: SceneObject) =
+            objects.Add(
+                match sceneObject.Id with
+                | EntityId.Guid uid -> uid, sceneObject
+            )
+
+            sceneObject.Children |> Seq.iter traverse
+
+        scene.Objects |> Seq.iter traverse
+
+
         layout.HorizontalAlignment <- HorizontalAlignment.Stretch
         layout.VerticalAlignment <- VerticalAlignment.Stretch
         viewport.HorizontalAlignment <- HorizontalAlignment.Stretch
@@ -70,6 +86,12 @@ type SceneEditor(ctx: EditorContext, scene: Scene) as this =
         sidePanel.Width <- 250
         DockPanel.SetDock(sidePanel, Dock.Left)
 
+
+        let objectPanelDock = Border()
+        objectPanelDock.Width <- 250
+        DockPanel.SetDock(objectPanelDock, Dock.Right)
+        
+        objectPanelDock.Child <- objectPanel
 
         treeView.VerticalAlignment <- VerticalAlignment.Stretch
         treeView.HorizontalAlignment <- HorizontalAlignment.Stretch
@@ -89,7 +111,7 @@ type SceneEditor(ctx: EditorContext, scene: Scene) as this =
         let sidePanelContextMenu = ContextMenu()
 
         let menuItem = MenuItem()
-        
+
         menuItem.Header <- "Add"
         menuItem.Name <- "Add"
 
@@ -104,11 +126,11 @@ type SceneEditor(ctx: EditorContext, scene: Scene) as this =
         viewport.Width <- this.Bounds.Width
 
         this.Children.Add(sidePanel)
+        this.Children.Add(objectPanelDock)
         this.Children.Add(layout)
         this.Focusable <- true
         this.IsHitTestVisible <- true
         this.Focus() |> ignore
-        
 
         // THIS IS IMPORTANT, or nothing renders but open gl clears.
         this.Background <- Brushes.Transparent
@@ -121,8 +143,25 @@ type SceneEditor(ctx: EditorContext, scene: Scene) as this =
         this.SizeChanged.Add(fun e ->
             viewport.Height <- layout.Bounds.Size.Height
             viewport.Width <- layout.Bounds.Size.Width)
-        
-        
+
+        treeView.SelectionChanged.Add(fun e ->
+            if e.AddedItems.Count = 0 then
+                ()
+            else
+                let item = e.AddedItems[0]
+
+                let tvi = item :?> TreeViewItem
+                
+                let id =match tvi.DataContext :?> EntityId with EntityId.Guid uid -> uid
+
+                printfn $"Object selected: {id}"
+                
+                objectPanel.SetObject(objects[id])
+
+
+                ())
+
+
         this.BuildTreeView()
 
     interface IViewportHost with
@@ -203,14 +242,14 @@ type SceneEditor(ctx: EditorContext, scene: Scene) as this =
 
 
     member this.BuildTreeView() =
-        
-        
+
+
         let rec build (parent: TreeViewItem) (object: SceneObject) =
             let item = TreeViewItem()
-            
+
             item.DataContext <- object.Id
             item.Header <- object.Name
-            
+
             let itemContextMenu = ContextMenu()
 
             let addItem = MenuItem()
@@ -219,21 +258,21 @@ type SceneEditor(ctx: EditorContext, scene: Scene) as this =
 
             itemContextMenu.Items.Add(addItem) |> ignore
             item.ContextMenu <- itemContextMenu
-            
-            
+
+
             for child in object.Children do
                 build item child
-                
-            
+
+
             parent.Items.Add(item) |> ignore
-        
-        
+
+
         for object in scene.Objects do
             let item = TreeViewItem()
-                        
+
             item.DataContext <- object.Id
             item.Header <- object.Name
-            
+
             let itemContextMenu = ContextMenu()
 
             let addItem = MenuItem()
@@ -242,22 +281,17 @@ type SceneEditor(ctx: EditorContext, scene: Scene) as this =
 
             itemContextMenu.Items.Add(addItem) |> ignore
             item.ContextMenu <- itemContextMenu
-            
+
             for child in object.Children do
                 build item child
-                
+
             treeView.Items.Add(item) |> ignore
-            
-            
-            
-        
-        
-        
+
         ()
-        
-        
-        
-    
+
+
+
+
 
     member this.AddSceneObject(parent: TreeViewItem option) =
         let eId = EntityId.Create()
@@ -271,7 +305,7 @@ type SceneEditor(ctx: EditorContext, scene: Scene) as this =
                 let mutable item = TreeViewItem()
 
                 item.DataContext <- eId
-                
+
                 item.Header <- name
 
                 let itemContextMenu = ContextMenu()
@@ -284,20 +318,18 @@ type SceneEditor(ctx: EditorContext, scene: Scene) as this =
                 item.ContextMenu <- itemContextMenu
 
                 let testTV = TreeViewItem()
-                
+
                 testTV.Header <- "TEST"
                 testTV.Name <- "TEst"
-                
-                testTV.DataContext <- 
-                
-                treeView.Items.Add(item) |> ignore
 
-        | Some (value: TreeViewItem) ->
+                testTV.DataContext <-
+
+                    treeView.Items.Add(item) |> ignore
+
+        | Some(value: TreeViewItem) ->
             let pId = value.DataContext :?> EntityId
-            
-            match
-                ctx.AssetStoreContext.AddSceneObject(scene.VersionId, (Some pId), name, Transform.Default)
-            with
+
+            match ctx.AssetStoreContext.AddSceneObject(scene.VersionId, (Some pId), name, Transform.Default) with
             | Error errorValue -> printfn $"Error adding scene object: {errorValue}"
             | Ok eId ->
                 let item = TreeViewItem()
@@ -305,7 +337,7 @@ type SceneEditor(ctx: EditorContext, scene: Scene) as this =
                 item.Header <- name
 
                 let itemContextMenu = ContextMenu()
-                
+
                 item.DataContext <- eId
 
                 let addItem = MenuItem()

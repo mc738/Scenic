@@ -13,6 +13,8 @@
         <Compile Include="Components\Debugging\DebugPlane.fs" />
         <Compile Include="Components\Viewport3D.fs" />
         <Compile Include="Controls\SceneGraphControl.fs" />
+        <Compile Include="Controls\TransformControl.fs" />
+        <Compile Include="Views\ObjectPanel.fs" />
         <Compile Include="Views\SceneEditor.fs" />
         <Compile Include="Windows\NewSceneWindow.fs" />
         <Compile Include="Windows\LoadSceneWindow.fs" />
