@@ -21,13 +21,11 @@ type MainWindow(ctx: EditorContext) as this =
     member private this.InitializeComponent() =
         AvaloniaXamlLoader.Load(this)
 
-        let editorHold = this.FindControl<ContentControl>("SceneEditorHole")
+        //let editorHold = this.FindControl<ContentControl>("SceneEditorHole")
 
         //let tabControl = this.FindControl<TabControl>("MainTabControl")
 
-        editorHold.Content <- SceneEditor(ctx)
-
-
+        //editorHold.Content <- SceneEditor(ctx)
 
     member _.AddNewScene(sender: obj, e: RoutedEventArgs) =
         async {
@@ -45,9 +43,6 @@ type MainWindow(ctx: EditorContext) as this =
             match name  with
             | None -> ()
             | Some value ->
-                printfn "Hello, World!"
-
-                
                 let newTab = new TabItem(Header = value)
                 
                 let g = Grid()
@@ -55,7 +50,9 @@ type MainWindow(ctx: EditorContext) as this =
                 g.VerticalAlignment <- VerticalAlignment.Stretch
                 g.HorizontalAlignment <- HorizontalAlignment.Stretch
                 
-                let sceneEditor = SceneEditor(ctx)
+                let newId = ctx.AssetStoreContext.AddScene value
+                
+                let sceneEditor = SceneEditor(ctx, newId.VersionId)
                 
                 g.Children.Add(sceneEditor)
                 

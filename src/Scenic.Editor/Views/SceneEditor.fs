@@ -6,6 +6,7 @@ open Avalonia.Controls
 open Avalonia.Layout
 open Avalonia.Media
 open Avalonia.Threading
+open CommonResourceFormats.AssetStore.Core.Domain
 open FsToolbox.OpenGL
 open Scenic.Component
 open Scenic.Editor.Components.Debugging
@@ -14,37 +15,42 @@ open Scenic.Editor.Core.Domain
 open Scenic.Editor.Core.Input
 open Silk.NET.OpenGL
 open Avalonia.Interactivity
+open FsToolbox.GameDevelopment.Core.Types
 
 
+//type SceneObjectTreeViewItem(entityId: EntityId) =
+//    inherit TreeViewItem()
+//    
+//    do
+//        base.Header <- "New object"
+//
+//    member _.EntityId = entityId
+    
 type RelayCommand(action: unit -> unit, canExecute: unit -> bool) =
     interface ICommand with
-        member this.CanExecute(parameter) =
-            canExecute()
+        member this.CanExecute(parameter) = canExecute ()
 
-        member this.add_CanExecuteChanged(value: EventHandler) =
-            ()
+        member this.add_CanExecuteChanged(value: EventHandler) = ()
 
 
-        member this.remove_CanExecuteChanged(value: EventHandler) =
-            ()
+        member this.remove_CanExecuteChanged(value: EventHandler) = ()
 
-        member this.Execute(parameter) = action()
+        member this.Execute(parameter) = action ()
 
 
     member _.Test = ()
 
-type SceneEditor(ctx: EditorContext) as this =
+type SceneEditor(ctx: EditorContext, sceneVersionId: EntityId) as this =
     inherit DockPanel()
 
     let viewport = Viewport3D(ctx, this)
 
     let layout = StackPanel()
 
-
     let treeView = TreeView()
 
     let mutable debugPlane = Operators.Unchecked.defaultof<DebugPlane>
-    
+
     let mutable editorGrid = Operators.Unchecked.defaultof<EditorGrid>
 
     //let mutable cm = Operators.Unchecked.defaultof<ContentManager>
@@ -68,48 +74,27 @@ type SceneEditor(ctx: EditorContext) as this =
 
         treeView.VerticalAlignment <- VerticalAlignment.Stretch
         treeView.HorizontalAlignment <- HorizontalAlignment.Stretch
-        
+
         let sidePanelLayout = Grid()
-        
+
         sidePanelLayout.VerticalAlignment <- VerticalAlignment.Stretch
         sidePanelLayout.HorizontalAlignment <- HorizontalAlignment.Stretch
-        
+
         sidePanel.Child <- sidePanelLayout
 
         //sidePanelLayout.Children.Add(tf)
 
         sidePanelLayout.Children.Add(treeView)
-        
+
 
         let sidePanelContextMenu = ContextMenu()
 
         let menuItem = MenuItem()
-
+        
         menuItem.Header <- "Add"
         menuItem.Name <- "Add"
 
-        
-        let rec addTreeViewItem (parent: TreeViewItem option) (id: Guid) =
-            let item = TreeViewItem()
-            
-            
-            item.Header <- "New Item"
-            
-            let itemContextMenu = ContextMenu()
-            
-            
-            let addItem = MenuItem()
-            addItem.Header <- "Add child"
-            addItem.Command <- RelayCommand((fun _ -> printfn "Add child to %s" (id.ToString("n")); addTreeViewItem (Some item) (Guid.NewGuid())), (fun _ -> true))
-
-            itemContextMenu.Items.Add(addItem) |> ignore
-            item.ContextMenu <- itemContextMenu
-           
-            match parent with
-            | None -> treeView.Items.Add(item) |> ignore
-            | Some p -> p.Items.Add(item) |> ignore
-            
-        menuItem.Command <- RelayCommand((fun _ -> addTreeViewItem None (Guid.NewGuid())), (fun _ -> true))
+        menuItem.Command <- RelayCommand((fun _ -> this.AddSceneObject(None)), (fun _ -> true))
 
         sidePanelContextMenu.Items.Add(menuItem)
 
@@ -197,21 +182,81 @@ type SceneEditor(ctx: EditorContext) as this =
             ()
 
         member this.RenderScene(gl, view, projection) =
-            
+
             gl.Enable(EnableCap.Blend)
             gl.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha)
-            
+
             editorGrid.Draw(view, projection, viewport.CameraPosition)
-            
-            
-            //debugPlane.Bind(view, projection)
-            //render.DrawElements(PrimitiveType.Triangles, DrawElementsType.UnsignedInt, 6u)
+
+
+        //debugPlane.Bind(view, projection)
+        //render.DrawElements(PrimitiveType.Triangles, DrawElementsType.UnsignedInt, 6u)
 
         member this.ViewportLoaded(gl) =
             debugPlane <- DebugPlane(gl)
-            render <- Render(gl)            
+            render <- Render(gl)
             editorGrid <- EditorGrid(gl)
 
+
+
+
+    member this.AddSceneObject(parent: TreeViewItem option) =
+        let eId = EntityId.Create()
+        let name = "New object"
+
+        match parent with
+        | None ->
+            match ctx.AssetStoreContext.AddSceneObject(sceneVersionId, None, name, Transform.Default) with
+            | Error errorValue -> printfn $"Error adding scene object: {errorValue}"
+            | Ok eId ->
+                let mutable item = TreeViewItem()
+
+                item.DataContext <- eId
+                
+                item.Header <- name
+
+                let itemContextMenu = ContextMenu()
+
+                let addItem = MenuItem()
+                addItem.Header <- "Add child"
+                addItem.Command <- RelayCommand((fun _ -> this.AddSceneObject(Some item)), (fun _ -> true))
+
+                itemContextMenu.Items.Add(addItem) |> ignore
+                item.ContextMenu <- itemContextMenu
+
+                let testTV = TreeViewItem()
+                
+                testTV.Header <- "TEST"
+                testTV.Name <- "TEst"
+                
+                testTV.DataContext <- 
+                
+                treeView.Items.Add(item) |> ignore
+
+        | Some (value: TreeViewItem) ->
+            let pId = value.DataContext :?> EntityId
+            
+            match
+                ctx.AssetStoreContext.AddSceneObject(sceneVersionId, (Some pId), name, Transform.Default)
+            with
+            | Error errorValue -> printfn $"Error adding scene object: {errorValue}"
+            | Ok eId ->
+                let item = TreeViewItem()
+
+                item.Header <- name
+
+                let itemContextMenu = ContextMenu()
+                
+                item.DataContext <- eId
+
+                let addItem = MenuItem()
+                addItem.Header <- "Add child"
+                addItem.Command <- RelayCommand((fun _ -> this.AddSceneObject(Some item)), (fun _ -> true))
+
+                itemContextMenu.Items.Add(addItem) |> ignore
+                item.ContextMenu <- itemContextMenu
+
+                value.Items.Add(item) |> ignore
 
 
     member this.FocusNow() =

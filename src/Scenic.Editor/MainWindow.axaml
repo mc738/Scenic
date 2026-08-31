@@ -27,26 +27,6 @@
         <Border Padding="5" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Grid.Row="1">
             <Grid VerticalAlignment="Stretch" Background="White" HorizontalAlignment="Stretch">
                 <TabControl x:Name="MainTabControl" VerticalAlignment="Stretch" HorizontalAlignment="Stretch">
-                    <TabItem Header="Scene">
-                        <Grid VerticalAlignment="Stretch" HorizontalAlignment="Stretch">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*"></ColumnDefinition>
-                            </Grid.ColumnDefinitions>
-                            <ContentControl x:Name="SceneEditorHole"></ContentControl>
-                        </Grid>
-                    </TabItem >
-                    <TabItem Header="tab 2">
-                        <StackPanel>
-                            <Label Classes="comment">
-                                This is a comment
-                            </Label> 
-                            <Label Classes="error">This is an error</Label>
-                            <Label Classes="warning">This is a warning</Label>
-                            <Label Classes="success">This is a success</Label>
-                            <Label Classes="info">This is info</Label>
-                            <Label Classes="trace">This is a trace</Label>
-                        </StackPanel>
-                    </TabItem>
                 </TabControl>
             </Grid>
         </Border>
