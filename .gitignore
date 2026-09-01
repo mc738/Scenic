@@ -40,3 +40,10 @@ obj/
 /packages/
 riderModule.iml
 /_ReSharper.Caches/
+
+
+tools/*
+!tools/README.md
+!tools/*.7z
+fonts/*
+!fonts/README.md

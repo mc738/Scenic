@@ -9,4 +9,15 @@
         <Compile Include="Program.fs"/>
     </ItemGroup>
 
+    <ItemGroup>
+      <ProjectReference Include="..\..\..\CommonResourceFormats\src\CommonResourceFormats.AssetStore\CommonResourceFormats.AssetStore.fsproj" />
+      <ProjectReference Include="..\..\..\CommonResourceFormats\src\CommonResourceFormats.GameDataFile\CommonResourceFormats.GameDataFile.fsproj" />
+      <ProjectReference Include="..\..\..\CommonResourceFormats\src\CommonResourceFormats.ModelFile\CommonResourceFormats.ModelFile.fsproj" />
+      <ProjectReference Include="..\..\..\CommonResourceFormats\src\CommonResourceFormats.PackFile\CommonResourceFormats.PackFile.fsproj" />
+      <ProjectReference Include="..\..\..\FsToolbox\FsToolbox.GameDevelopment\FsToolbox.GameDevelopment.fsproj" />
+      <ProjectReference Include="..\..\..\FsToolbox\FsToolbox.GLTF\FsToolbox.GLTF.fsproj" />
+      <ProjectReference Include="..\..\..\FsToolbox\FsToolbox.OpenGL\FsToolbox.OpenGL.fsproj" />
+      <ProjectReference Include="..\Scenic.Core\Scenic.Core.fsproj" />
+    </ItemGroup>
+
 </Project>
