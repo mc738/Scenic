@@ -33,4 +33,4 @@ type ObjectPanel(ctx: EditorContext) as this =
         
         
     member _.SaveObject() =
-        ctx.AssetStoreContext.UpdateSceneObjectTransform(sceneObject.Id, transformControl.GetTransform())
+        ctx.ScenicContext.AssetStore.UpdateSceneObjectTransform(sceneObject.Id, transformControl.GetTransform())

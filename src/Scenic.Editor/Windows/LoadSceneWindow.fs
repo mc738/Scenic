@@ -15,7 +15,8 @@ type LoadSceneWindow(sceneListings: SceneListings) as this =
     
     let layout = StackPanel()
     
-    do
+    do  
+        this.WindowDecorations <- WindowDecorations.None
         
         for listing in sceneListings.Scenes do
             let item = ListBoxItem()

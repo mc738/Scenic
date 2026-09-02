@@ -16,8 +16,15 @@
         <Compile Include="Controls\TransformControl.fs" />
         <Compile Include="Views\ObjectPanel.fs" />
         <Compile Include="Views\SceneEditor.fs" />
+        <Compile Include="Views\AssetStoreManager\Dialogs\NewComponentWindow.fs" />
+        <Compile Include="Views\AssetStoreManager\Dialogs\NewAssetWindow.fs" />
+        <Compile Include="Views\AssetStoreManager\ComponentManagerView.fs" />
+        <Compile Include="Views\AssetStoreManager\AssetManagerView.fs" />
+        <Compile Include="Views\AssetStoreManager\ResourceManagerView.fs" />
+        <Compile Include="Views\AssetStoreManager\SettingsView.fs" />
         <Compile Include="Windows\NewSceneWindow.fs" />
         <Compile Include="Windows\LoadSceneWindow.fs" />
+        <Compile Include="Windows\AssetStoreManagerWindow.fs" />
         <Compile Include="MainWindow.axaml.fs"/>
         <Compile Include="App.axaml.fs"/>
         <Compile Include="Program.fs"/>
@@ -44,5 +51,6 @@
       <ProjectReference Include="..\..\..\CommonResourceFormats\src\CommonResourceFormats.AssetStore\CommonResourceFormats.AssetStore.fsproj" />
       <ProjectReference Include="..\..\..\FsToolbox\FsToolbox.GameDevelopment\FsToolbox.GameDevelopment.fsproj" />
       <ProjectReference Include="..\..\..\FsToolbox\FsToolbox.OpenGL\FsToolbox.OpenGL.fsproj" />
+      <ProjectReference Include="..\Scenic.Core\Scenic.Core.fsproj" />
     </ItemGroup>
 </Project>

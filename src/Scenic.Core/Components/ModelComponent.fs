@@ -5,6 +5,7 @@ open FsToolbox.GLTF
 open FsToolbox.GameDevelopment.Geometry.Types
 open FsToolbox.OpenGL.Materials
 open CommonResourceFormats.AssetStore.Core.Domain
+open Scene.Core
 
 type ModelComponent() =
     
@@ -15,36 +16,32 @@ type ModelComponent() =
     static member ComponentTypeName = "scenic:model"
     
     
-    static member Load(comp: Component) =
-        let materialAsset =
-            comp.Assets |> Seq.tryFind (fun ca -> ca.Asset.AssetType.Equals("opengl:material", StringComparison.OrdinalIgnoreCase))
-        
-        let modelAsset =
-            comp.Assets
-            |> Seq.tryFind (fun ca -> ca.Asset.AssetType.Equals("crf:model", StringComparison.OrdinalIgnoreCase))
-            |> Option.bind (fun ma ->
-                ma.Asset.Resources
-                |> Seq.tryFind (fun r ->
-                    match r.FileType with
-                    | "gltf" -> true
-                    //| "model" -> true
-                    | _ -> false))
-            |> Option.map (fun ma ->
-                match ma.FileType with
-                | "gltf" -> GLTFLoader.loadModel
-                
-                
-                
-                ()
-                
-                )
-        
+    static member Load(ctx: ScenicContext, comp: Component) =
         
         let modelComp = ModelComponent()
         
-        //materialAsset |> Option.iter (fun ma -> modelComp.SetMaterial ma)
-        modelAsset |> Option.iter (fun ma -> modelComp.SetModel ma)
+        let materialAsset =
+            comp.Assets |> Seq.tryFind (fun ca -> ca.Asset.AssetType.Equals("opengl:material", StringComparison.OrdinalIgnoreCase))
         
+        let loadModelResult =
+            match 
+                comp.Assets
+                |> Seq.tryFind (fun ca -> ca.Asset.AssetType.Equals("crf:model", StringComparison.OrdinalIgnoreCase))
+            with
+            | None -> Error ""
+            | Some ma ->
+                match ctx.TryResolvePath ma.Asset.Path with
+                | Error errorValue -> Error errorValue
+                | Ok path ->
+                    let m3d = GLTFLoader.loadModel path
+                    
+                    modelComp.SetModel(m3d)
+                    Ok ()
+            
+        match loadModelResult with
+        | Ok resultValue -> ()
+        | Error errorValue -> printfn $"Error: {errorValue}"
+            
         modelComp
     
     static member Deserialize(jsonString: string) =

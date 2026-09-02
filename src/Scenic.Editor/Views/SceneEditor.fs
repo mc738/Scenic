@@ -60,7 +60,7 @@ type SceneEditor(ctx: EditorContext, scene: Scene) as this =
     let objects = Dictionary<Guid, SceneObject>()
 
     let objectPanel = ObjectPanel(ctx)
-    
+
     // TEST
     //let tf = TransformControl()
 
@@ -86,11 +86,10 @@ type SceneEditor(ctx: EditorContext, scene: Scene) as this =
         sidePanel.Width <- 250
         DockPanel.SetDock(sidePanel, Dock.Left)
 
-
         let objectPanelDock = Border()
         objectPanelDock.Width <- 250
         DockPanel.SetDock(objectPanelDock, Dock.Right)
-        
+
         objectPanelDock.Child <- objectPanel
 
         treeView.VerticalAlignment <- VerticalAlignment.Stretch
@@ -151,11 +150,13 @@ type SceneEditor(ctx: EditorContext, scene: Scene) as this =
                 let item = e.AddedItems[0]
 
                 let tvi = item :?> TreeViewItem
-                
-                let id =match tvi.DataContext :?> EntityId with EntityId.Guid uid -> uid
+
+                let id =
+                    match tvi.DataContext :?> EntityId with
+                    | EntityId.Guid uid -> uid
 
                 printfn $"Object selected: {id}"
-                
+
                 objectPanel.SetObject(objects[id])
 
 
@@ -299,7 +300,7 @@ type SceneEditor(ctx: EditorContext, scene: Scene) as this =
 
         match parent with
         | None ->
-            match ctx.AssetStoreContext.AddSceneObject(scene.VersionId, None, name, Transform.Default) with
+            match ctx.ScenicContext.AssetStore.AddSceneObject(scene.VersionId, None, name, Transform.Default) with
             | Error errorValue -> printfn $"Error adding scene object: {errorValue}"
             | Ok eId ->
                 let mutable item = TreeViewItem()
@@ -317,19 +318,25 @@ type SceneEditor(ctx: EditorContext, scene: Scene) as this =
                 itemContextMenu.Items.Add(addItem) |> ignore
                 item.ContextMenu <- itemContextMenu
 
-                let testTV = TreeViewItem()
+                treeView.Items.Add(item) |> ignore
 
-                testTV.Header <- "TEST"
-                testTV.Name <- "TEst"
-
-                testTV.DataContext <-
-
-                    treeView.Items.Add(item) |> ignore
+                objects.Add(
+                    match eId with
+                    | EntityId.Guid uid ->
+                        uid,
+                        ({ Id = eId
+                           Name = name
+                           Children = ResizeArray<SceneObject>()
+                           Components = ResizeArray<SceneObjectComponent>()
+                           Metadata = Map.empty
+                           Transform = Transform.Default }
+                        : SceneObject)
+                )
 
         | Some(value: TreeViewItem) ->
             let pId = value.DataContext :?> EntityId
 
-            match ctx.AssetStoreContext.AddSceneObject(scene.VersionId, (Some pId), name, Transform.Default) with
+            match ctx.ScenicContext.AssetStore.AddSceneObject(scene.VersionId, (Some pId), name, Transform.Default) with
             | Error errorValue -> printfn $"Error adding scene object: {errorValue}"
             | Ok eId ->
                 let item = TreeViewItem()
@@ -348,6 +355,19 @@ type SceneEditor(ctx: EditorContext, scene: Scene) as this =
                 item.ContextMenu <- itemContextMenu
 
                 value.Items.Add(item) |> ignore
+                
+                objects.Add(
+                    match eId with
+                    | EntityId.Guid uid ->
+                        uid,
+                        ({ Id = eId
+                           Name = name
+                           Children = ResizeArray<SceneObject>()
+                           Components = ResizeArray<SceneObjectComponent>()
+                           Metadata = Map.empty
+                           Transform = Transform.Default }
+                        : SceneObject)
+                )
 
 
     member this.FocusNow() =

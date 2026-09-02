@@ -15,6 +15,9 @@ type NewSceneWindow() as this =
     let cancelButton = Button()
     
     do
+        this.WindowDecorations <- WindowDecorations.None
+        
+        
         this.Height <- 200
         this.Width <- 400
         this.WindowStartupLocation <- WindowStartupLocation.CenterOwner

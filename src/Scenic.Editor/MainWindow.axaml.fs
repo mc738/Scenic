@@ -51,7 +51,7 @@ type MainWindow(ctx: EditorContext) as this =
                 g.VerticalAlignment <- VerticalAlignment.Stretch
                 g.HorizontalAlignment <- HorizontalAlignment.Stretch
                 
-                let newId = ctx.AssetStoreContext.AddScene value
+                let newId = ctx.ScenicContext.AssetStore.AddScene value
                 
                 let sceneEditor = SceneEditor(ctx, newId)
                 
@@ -73,14 +73,14 @@ type MainWindow(ctx: EditorContext) as this =
                     tabControl <- Some tc
                     tc
              
-            let loadSceneWindow = LoadSceneWindow(ctx.AssetStoreContext.GetSceneListings())
+            let loadSceneWindow = LoadSceneWindow(ctx.ScenicContext.AssetStore.GetSceneListings())
                     
             let! evId = loadSceneWindow.ShowDialog<EntityId option>(this) |> Async.AwaitTask
             
             match evId with
             | None -> ()
             | Some sceneVersionId ->
-                match ctx.AssetStoreContext.GetSceneVersion(sceneVersionId) with
+                match ctx.ScenicContext.AssetStore.GetSceneVersion(sceneVersionId) with
                 | Error e ->
                     printfn $"Failed to load scene: {e}"
                 | Ok scene ->
@@ -105,9 +105,22 @@ type MainWindow(ctx: EditorContext) as this =
                 
                 ()
             
-            
-            ()
-            
-            
         }
         |> Async.StartImmediate
+        
+    member _.OpenAssetStoreManager(sender: obj, e: RoutedEventArgs) =
+        async {
+            
+            let assetStoreManagerWindow = AssetStoreManagerWindow(ctx)
+            
+            let! refreshRequired = assetStoreManagerWindow.ShowDialog<bool>(this) |> Async.AwaitTask
+            
+            if refreshRequired then
+                // TODO handle refresh
+                
+                ()
+            
+            ()
+        }
+        |> Async.StartImmediate
+        

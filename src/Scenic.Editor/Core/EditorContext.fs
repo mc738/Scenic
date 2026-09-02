@@ -3,8 +3,9 @@
 open CommonResourceFormats.AssetStore
 open Microsoft.Extensions.DependencyInjection
 open Microsoft.Extensions.Logging
+open Scene.Core
 
 type EditorContext =
     { ServiceProvider: ServiceProvider
       LoggerFactory: ILoggerFactory
-      AssetStoreContext: AssetStoreContext }
+      ScenicContext: ScenicContext }
