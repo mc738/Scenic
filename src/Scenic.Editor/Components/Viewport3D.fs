@@ -128,6 +128,7 @@ type Viewport3D(ctx: EditorContext, host: IViewportHost) as this =
 
     member _.CameraPosition = camera.Position
     
+    member _.Camera = camera
     
     override this.OnOpenGlInit(gli: GlInterface) =
 

@@ -2,13 +2,22 @@
 
 open System
 open System.Collections.Generic
+open System.Numerics
 open System.Windows.Input
 open Avalonia.Controls
 open Avalonia.Layout
 open Avalonia.Media
 open Avalonia.Threading
 open CommonResourceFormats.AssetStore.Core.Domain
+open CommonResourceFormats.AssetStore.Operations
+open CommonResourceFormats.AssetStore.Store.Persistence
+open FsToolbox.GLTF
 open FsToolbox.OpenGL
+open FsToolbox.OpenGL.Geometry
+open FsToolbox.OpenGL.Materials
+open FsToolbox.OpenGL.Types
+open Scene.Core.Workflows
+open Scene.Core.Workflows.Standard.V1
 open Scenic.Component
 open Scenic.Editor.Components.Debugging
 open Scenic.Editor.Core
@@ -18,9 +27,148 @@ open Silk.NET.OpenGL
 open Avalonia.Interactivity
 open FsToolbox.GameDevelopment.Core.Types
 
+// # Material type naming
+//
+// [namespace]:[type]
+//
+// ## Examples
+//
+// opengl-material:basis
+// opengl-material:unlit
+// opengl-material:lit etc.
+//
+// # Shader type naming
+//
+// opengl-shader:vert
+// opengl-shader:frag
+//
+// # Images/textures
+//
+// texture:colour
+// texture:normal
+// texture:
+// img
+//
+// # Models
+// gltf
+
+(*
+module RenderImportWorkflows =
+
+
+    module Standard =
+
+        module V1 =
+
+            [<RequireQualifiedAccess>]
+            module Keys =
+
+                let ``component-model`` = EntityKey.Namespace(scenicNS, "component-model")
+
+                let ``asset-importer`` = EntityKey.Namespace(scenicNS, "asset-importer")
+                
+                let ``material-slot`` = EntityKey.Namespace(scenicNS, "material-slot")
+                
+            let loadModel (comp: Component) =
+                match
+                    comp.Assets
+                    |> Seq.tryFind (fun ca ->
+                        ca.Metadata.TryGetBool(Keys.``component-model``)
+                        |> Option.defaultValue false)
+                with
+                | None -> Error "No assets are marked as the component model for this component"
+                | Some ca ->
+                    match ca.Asset.Metadata.TryGet(Keys.``asset-importer``) with
+                    | None -> Error "Missing asset importer value"
+                    | Some "gltf" -> GLTFLoader.loadModel (ca.Asset.Path.Serialize()) |> Ok
+                    | Some v -> Error $"Unknown asset importer: {v}"
+
+            let tryLoadOpenGLMaterial (comp: Component)=
+                //comp.Assets
+                //|> Seq.filter (fun )
+                
+                
+                match
+                    comp.Assets
+                    |> Seq.tryFind (fun ca ->
+                        
+                        ca.Metadata.TryGetBool(Keys.``component-model``)
+                        |> Option.defaultValue false)
+                with
+                | None -> Error "No assets are marked as the component model for this component"
+                | Some ca ->
+                    match ca.Asset.AssetType with
+                    | "opengl-material" ->
+                        Ok ()
+                    | at -> Error $"Incorrect asset type: {at}"
+                    match ca.Asset.Metadata.TryGet(Keys.``asset-importer``) with
+                    | None -> Error "Missing asset importer value"
+                    | Some "gltf" -> GLTFLoader.loadModel (ca.Asset.Path.Serialize()) |> Ok
+                    | Some v -> Error $"Unknown asset importer: {v}"
+    
+    [<RequireQualifiedAccess>]
+    module Keys =
+
+        let ``renderer-import-workflow`` = EntityKey.Namespace (scenicNS, "renderer-import-workflow")
+
+    let tryLoadModel (comp: Component) =
+
+        match comp.Metadata.TryGet(Keys.``renderer-import-workflow``) with
+        | None -> Error "No renderer import workflow found"
+        | Some "standard"
+        | Some "standard-v1" ->
+            // "scenic:asset-importer" "gltf"
+
+            Standard.V1.loadModel comp
+        | Some v ->
+            // Unknown render handler
+            Error "No renderer import workflow found"
+*)
+
+type SceneObjectId = EntityId
+
+type RenderBatch =
+    { Material: OpenGLMaterial
+      Items: Dictionary<SceneObjectId, RenderBatchItem> }
+
+and RenderBatchItem(objectId: SceneObjectId, mesh: ElementMesh) =
+
+    let mutable distanceToCamera = 0f
+
+    member _.ObjectId = objectId
+
+    member _.Mesh = mesh
+
+    member _.DistanceToCamera = distanceToCamera
+
+    member _.SetDistanceToCamera(newDistance) = distanceToCamera <- newDistance
+
+type MaterialId = EntityId
+
+type RenderBatches =
+    { Opaque: Dictionary<MaterialId, RenderBatch>
+      Transparent: Dictionary<MaterialId, RenderBatch> }
+
+    static member Empty =
+        { Opaque = Dictionary<MaterialId, RenderBatch>()
+          Transparent = Dictionary<MaterialId, RenderBatch>() }
 
 type SceneEditorView(ctx: EditorContext, parentWindow: Window, scene: Scene) as this =
     inherit DockPanel()
+    
+    // The transforms for all scene objects, stored in a map.
+    // This is for easy access and so they can be resolved via an entity id easily.
+    let transformMap = Dictionary<SceneObjectId, Transform>()
+    
+
+    let renderBatches = RenderBatches.Empty
+
+    // An internal collection used to decide what will be rendered.
+    // The data in this doesn't need to be saved.
+    let objectInstances = Dictionary<EntityId, EditorSceneObjectInstance>()
+
+
+    let mutable viewportGL = Operators.Unchecked.defaultof<GL>
 
     let viewport = Viewport3D(ctx, this)
 
@@ -39,10 +187,9 @@ type SceneEditorView(ctx: EditorContext, parentWindow: Window, scene: Scene) as 
 
     let objectPanel = ObjectPanel(ctx, parentWindow)
 
-    // TEST
-    //let tf = TransformControl()
-
     do
+        objectPanel.ComponentAdded.Add(this.OnComponentAdded)
+
         let rec traverse (sceneObject: SceneObject) =
             objects.Add(
                 match sceneObject.Id with
@@ -52,7 +199,6 @@ type SceneEditorView(ctx: EditorContext, parentWindow: Window, scene: Scene) as 
             sceneObject.Children |> Seq.iter traverse
 
         scene.Objects |> Seq.iter traverse
-
 
         layout.HorizontalAlignment <- HorizontalAlignment.Stretch
         layout.VerticalAlignment <- VerticalAlignment.Stretch
@@ -84,7 +230,6 @@ type SceneEditorView(ctx: EditorContext, parentWindow: Window, scene: Scene) as 
 
         sidePanelLayout.Children.Add(treeView)
 
-
         let sidePanelContextMenu = ContextMenu()
 
         let menuItem = MenuItem()
@@ -94,7 +239,7 @@ type SceneEditorView(ctx: EditorContext, parentWindow: Window, scene: Scene) as 
 
         menuItem.Command <- RelayCommand((fun _ -> this.AddSceneObject(None)), (fun _ -> true))
 
-        sidePanelContextMenu.Items.Add(menuItem)
+        sidePanelContextMenu.Items.Add(menuItem) |> ignore
 
 
         sidePanel.ContextMenu <- sidePanelContextMenu
@@ -140,7 +285,7 @@ type SceneEditorView(ctx: EditorContext, parentWindow: Window, scene: Scene) as 
 
                 ())
 
-
+        this.BuildTransformMap()
         this.BuildTreeView()
 
     interface IViewportHost with
@@ -207,6 +352,48 @@ type SceneEditorView(ctx: EditorContext, parentWindow: Window, scene: Scene) as 
             gl.Enable(EnableCap.Blend)
             gl.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha)
 
+            // Get all object primitives and transforms.
+
+            // Resolve any world transforms etc.
+
+            // Basic render passes
+
+            // Resolve transforms
+            // Group all primitives by material
+
+            //
+
+            let vpCam = viewport.Camera
+            
+            // Sort the batches.
+            for b in renderBatches.Opaque.Values do
+                for i in b.Items do
+                    
+                    let transform = transformMap[i.Key]
+                    
+                    let distanceToCamera =
+                        Vector3.Dot(transform.Position - vpCam.Position, vpCam.Forward)
+                    
+                    i.Value.SetDistanceToCamera(distanceToCamera)
+                    
+                b.Material.Use()
+                
+                for i in b.Items |> Seq.sortBy _.Value.DistanceToCamera do
+                    i.Value.Mesh.Bind()
+                    
+                    render.DrawElements(PrimitiveType.Triangles, DrawElementsType.UnsignedInt, i.Value.Mesh.IndicesCount)
+                    
+            
+            for b in renderBatches.Transparent.Values do
+                for i in b.Items do
+                    
+                    let transform = transformMap[i.Key]
+                    
+                    let distanceToCamera =
+                        Vector3.Dot(transform.Position - vpCam.Position, vpCam.Forward)
+                    
+                    i.Value.SetDistanceToCamera(distanceToCamera)
+                 
             editorGrid.Draw(view, projection, viewport.CameraPosition)
 
 
@@ -217,9 +404,17 @@ type SceneEditorView(ctx: EditorContext, parentWindow: Window, scene: Scene) as 
             debugPlane <- DebugPlane(gl)
             render <- Render(gl)
             editorGrid <- EditorGrid(gl)
+            viewportGL <- gl
 
+    member this.BuildTransformMap() =
+        let rec build (sceneObject: SceneObject) =
+            transformMap.Add(sceneObject.Id, sceneObject.Transform)
+            sceneObject.Children |> Seq.iter build
+            
+        for object in scene.Objects do
+            build object
+    
     member this.BuildTreeView() =
-
 
         let rec build (parent: TreeViewItem) (object: SceneObject) =
             let item = TreeViewItem()
@@ -236,13 +431,10 @@ type SceneEditorView(ctx: EditorContext, parentWindow: Window, scene: Scene) as 
             itemContextMenu.Items.Add(addItem) |> ignore
             item.ContextMenu <- itemContextMenu
 
-
             for child in object.Children do
                 build item child
 
-
             parent.Items.Add(item) |> ignore
-
 
         for object in scene.Objects do
             let item = TreeViewItem()
@@ -266,9 +458,40 @@ type SceneEditorView(ctx: EditorContext, parentWindow: Window, scene: Scene) as 
 
         ()
 
+    member this.OnComponentAdded(e: ComponentAddedEventArgs) =
+        match ctx.ScenicContext.AssetStore.GetComponentVersion e.ComponentVersionId with
+        | Error errorValue -> printfn $"Error: {errorValue}"
+        | Ok componentVersion ->
+
+            // Check if the component has any renderable assets
+            match ComponentWorkflows.tryLoadModel componentVersion.Component with
+            | Error errorValue ->
+                printfn $"Error: {errorValue}"
+                failwith "todo"
+            | Ok newModel ->
+                match objectInstances.TryGetValue e.SceneObjectId with
+                | false, _ -> ()
+                | true, so ->
+                    [ for mesh in newModel.Meshes do
+                          for primitive in mesh.Primitives do
+                              let em = ElementMesh(primitive.Layout)
+                              em.Build(viewportGL, primitive.Vertices, primitive.Indices)
+                              let m = EntityId.Create()
+
+                              match renderBatches.Opaque.TryGetValue m with
+                              | false, _ ->
+                                  renderBatches.Opaque.Add(
+                                      m,
+                                      ({ Material = failwith ""
+                                         Items = failwith "todo" }
+                                      : RenderBatch)
+                                  )
+                              | true, rb ->
+                                  rb.Items.Add("", em)
 
 
-
+                              { Mesh = em; MaterialId = "" } ]
+                    |> so.Primitives.AddRange
 
     member this.AddSceneObject(parent: TreeViewItem option) =
         let eId = EntityId.Create()
@@ -304,10 +527,12 @@ type SceneEditorView(ctx: EditorContext, parentWindow: Window, scene: Scene) as 
                            Name = name
                            Children = ResizeArray<SceneObject>()
                            Components = ResizeArray<SceneObjectComponent>()
-                           Metadata = Map.empty
+                           Metadata = EntityMetadata.Empty
                            Transform = Transform.Default }
                         : SceneObject)
                 )
+                
+                transformMap.Add(eId, Transform.Default)
 
         | Some(value: TreeViewItem) ->
             let pId = value.DataContext :?> EntityId
@@ -331,7 +556,7 @@ type SceneEditorView(ctx: EditorContext, parentWindow: Window, scene: Scene) as 
                 item.ContextMenu <- itemContextMenu
 
                 value.Items.Add(item) |> ignore
-                
+
                 objects.Add(
                     match eId with
                     | EntityId.Guid uid ->
@@ -340,12 +565,13 @@ type SceneEditorView(ctx: EditorContext, parentWindow: Window, scene: Scene) as 
                            Name = name
                            Children = ResizeArray<SceneObject>()
                            Components = ResizeArray<SceneObjectComponent>()
-                           Metadata = Map.empty
+                           Metadata = EntityMetadata.Empty
                            Transform = Transform.Default }
                         : SceneObject)
                 )
-
-
+                
+                transformMap.Add(eId, Transform.Default)
+                
     member this.FocusNow() =
         // Ensure focus happens after layout
         Dispatcher.UIThread.Post(fun () -> this.Focus() |> ignore)

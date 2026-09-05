@@ -106,8 +106,8 @@ type NewAssetWindow() as this =
                    Name = nameBox.Text
                    AssetType = selectedAssetType.Serialize()
                    IsPrototype = isPrototypeBox.IsChecked |> Option.ofNullable |> Option.defaultValue false
-                   Metadata = Map.empty
-                   VersionMetadata = Map.empty
+                   Metadata = EntityMetadata.Empty
+                   VersionMetadata = EntityMetadata.Empty
                    Path = EntityPath.Absolute path }
                 : NewAsset)
 

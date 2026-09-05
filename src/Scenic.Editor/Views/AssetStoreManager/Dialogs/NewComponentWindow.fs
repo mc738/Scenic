@@ -77,8 +77,8 @@ type NewComponentWindow() as this =
                    VersionId = EntityId.Create()
                    Name = nameBox.Text
                    ComponentType = selectedAssetType.Serialize()
-                   Metadata = Map.empty
-                   VersionMetadata = Map.empty
+                   Metadata = EntityMetadata.Empty
+                   VersionMetadata = EntityMetadata.Empty
                    SerializedData = "" }
                 : NewComponent)
 

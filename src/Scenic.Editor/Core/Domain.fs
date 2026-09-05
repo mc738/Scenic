@@ -4,11 +4,27 @@ open System
 open System.Numerics
 open System.Runtime.InteropServices
 open System.Windows.Input
+open CommonResourceFormats.AssetStore.Core.Domain
+open FsToolbox.GameDevelopment.Geometry.Types
+open FsToolbox.OpenGL.Geometry
+open FsToolbox.OpenGL.Types
 
 module Domain =
 
+    let scenicNS = "scenic"
+
     type EditorSceneInstance = { SceneId: Guid }
-    
+
+    type EditorSceneObjectInstance =
+        { Data: SceneObject
+          Model: Model3D option
+          MaterialId: Guid
+          Primitives: EditorSceneObjectPrimitive ResizeArray }
+
+    and EditorSceneObjectPrimitive =
+        { Mesh: ElementMesh
+          MaterialId: EntityId }
+
     //type SceneObjectTreeViewItem(entityId: EntityId) =
     //    inherit TreeViewItem()
     //
@@ -27,4 +43,3 @@ module Domain =
             member this.remove_CanExecuteChanged(value: EventHandler) = ()
 
             member this.Execute(parameter) = action ()
-

@@ -10,6 +10,9 @@
         <Compile Include="ScenicContext.fs" />
         <Compile Include="Components\ModelComponent.fs" />
         <Folder Include="Scenes\Objects\" />
+        <Compile Include="Workflows\Standard\V1\Keys.fs" />
+        <Compile Include="Workflows\Standard\V1\Impl.fs" />
+        <Compile Include="Workflows\Impl.fs" />
         
     </ItemGroup>
 
