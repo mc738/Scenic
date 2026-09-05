@@ -4,7 +4,7 @@ open Avalonia.Controls
 open Avalonia.Layout
 open CommonResourceFormats.AssetStore.Core.Domain
 
-type LoadSceneWindow(sceneListings: SceneListings) as this =
+type LoadSceneWindow(sceneListings: EntityListings) as this =
     inherit Window()
     
     let scenesList = ListBox()
@@ -18,7 +18,7 @@ type LoadSceneWindow(sceneListings: SceneListings) as this =
     do  
         this.WindowDecorations <- WindowDecorations.None
         
-        for listing in sceneListings.Scenes do
+        for listing in sceneListings.Entities do
             let item = ListBoxItem()
             
             match listing.Versions |> List.sortByDescending (fun v -> v.Version) |> List.tryHead with

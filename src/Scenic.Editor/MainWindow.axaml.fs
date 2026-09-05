@@ -8,6 +8,7 @@ open Avalonia.Markup.Xaml
 open CommonResourceFormats.AssetStore.Core.Domain
 open Scenic.Editor.Core
 open Scenic.Editor.Views
+open Scenic.Editor.Views.SceneEditor
 open Scenic.Editor.Windows
 
 type MainWindow(ctx: EditorContext) as this =
@@ -53,7 +54,7 @@ type MainWindow(ctx: EditorContext) as this =
                 
                 let newId = ctx.ScenicContext.AssetStore.AddScene value
                 
-                let sceneEditor = SceneEditor(ctx, newId)
+                let sceneEditor = SceneEditorView(ctx, this, newId)
                 
                 g.Children.Add(sceneEditor)
                 
@@ -95,7 +96,7 @@ type MainWindow(ctx: EditorContext) as this =
                     g.VerticalAlignment <- VerticalAlignment.Stretch
                     g.HorizontalAlignment <- HorizontalAlignment.Stretch
                   
-                    let sceneEditor = SceneEditor(ctx, scene)
+                    let sceneEditor = SceneEditorView(ctx, this, scene)
                     
                     g.Children.Add(sceneEditor)
                     

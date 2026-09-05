@@ -27,3 +27,4 @@ type ResourceManagerView() as this =
         
         this.Child <- layout
 
+

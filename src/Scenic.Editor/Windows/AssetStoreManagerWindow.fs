@@ -21,8 +21,9 @@ type AssetStoreManagerWindow(ctx: EditorContext) as this =
         tabControl.VerticalAlignment <- VerticalAlignment.Stretch
         tabControl.HorizontalAlignment <- HorizontalAlignment.Stretch
         
-        tabControl.Items.Add(new TabItem(Header = "Components", Content = ComponentManagerView())) |> ignore
-        tabControl.Items.Add(new TabItem(Header = "Assets", Content = AssetManagerView(this))) |> ignore
+        
+        tabControl.Items.Add(new TabItem(Header = "Components", Content = ComponentManagerView(ctx, this))) |> ignore
+        tabControl.Items.Add(new TabItem(Header = "Assets", Content = AssetManagerView(ctx, this))) |> ignore
         tabControl.Items.Add(new TabItem(Header = "Resources", Content = ResourceManagerView())) |> ignore
         tabControl.Items.Add(new TabItem(Header = "Settings", Content = SettingsView())) |> ignore
         

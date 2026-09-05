@@ -1,4 +1,4 @@
-﻿namespace Scenic.Editor.Views
+﻿namespace Scenic.Editor.Views.SceneEditor
 
 open System
 open System.Collections.Generic
@@ -19,29 +19,7 @@ open Avalonia.Interactivity
 open FsToolbox.GameDevelopment.Core.Types
 
 
-//type SceneObjectTreeViewItem(entityId: EntityId) =
-//    inherit TreeViewItem()
-//
-//    do
-//        base.Header <- "New object"
-//
-//    member _.EntityId = entityId
-
-type RelayCommand(action: unit -> unit, canExecute: unit -> bool) =
-    interface ICommand with
-        member this.CanExecute(parameter) = canExecute ()
-
-        member this.add_CanExecuteChanged(value: EventHandler) = ()
-
-
-        member this.remove_CanExecuteChanged(value: EventHandler) = ()
-
-        member this.Execute(parameter) = action ()
-
-
-    member _.Test = ()
-
-type SceneEditor(ctx: EditorContext, scene: Scene) as this =
+type SceneEditorView(ctx: EditorContext, parentWindow: Window, scene: Scene) as this =
     inherit DockPanel()
 
     let viewport = Viewport3D(ctx, this)
@@ -59,7 +37,7 @@ type SceneEditor(ctx: EditorContext, scene: Scene) as this =
 
     let objects = Dictionary<Guid, SceneObject>()
 
-    let objectPanel = ObjectPanel(ctx)
+    let objectPanel = ObjectPanel(ctx, parentWindow)
 
     // TEST
     //let tf = TransformControl()
@@ -239,8 +217,6 @@ type SceneEditor(ctx: EditorContext, scene: Scene) as this =
             debugPlane <- DebugPlane(gl)
             render <- Render(gl)
             editorGrid <- EditorGrid(gl)
-
-
 
     member this.BuildTreeView() =
 
