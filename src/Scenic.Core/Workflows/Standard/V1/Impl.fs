@@ -21,8 +21,7 @@ module ComponentWorkFlows =
             match comp.Assets.TryGetValue(EntityId.Deserialize mId) with
             | false, _ -> Error ""
             | true, { Asset = asset } ->
-                // TODO fix keys
-                match asset.AssetType.Serialize().Equals("scenic-editor-std.assets:gltf" (*Keys.AssetType.gltf*)) with
+                match asset.AssetType.Serialize().Equals(Keys.Assets.gltf.Serialize()) with
                 | false -> failwith "todo"
                 | true -> GLTFLoader.loadModel (asset.Path.Serialize()) |> Ok
 

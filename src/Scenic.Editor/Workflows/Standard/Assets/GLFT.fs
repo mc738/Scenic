@@ -10,7 +10,7 @@ open Scenic.Core.Workflows.Standard
 module GLTF =
 
     
-    let key = EntityKey.Namespace (assetsNS, "gltf")
+    //let key = EntityKey.Namespace (assetsNS, "gltf")
     
     let ``asset-type-key`` = V1.Keys.Assets.gltf
     
@@ -36,11 +36,11 @@ module GLTF =
 
     
     let factory =
-        ({ Key = key
+        ({ Key = ``asset-type-key``
            Name = "GLTF (standard workflow)"
            CreateNewWorkflowControl = fun () -> NewGLTFAssetWorkflowControl()
            CreatePreviewWorkflowControl = fun ctx asset -> PreviewGLTFAssetWorkflowControl()
            CreateEditWorkflowControl = fun ctx parentWindow asset -> EditGLTFAssetWorkflowControl(ctx, parentWindow, asset) }
         : AssetWorkflowFactory)
 
-    let handler = key, factory
+    let handler = ``asset-type-key``, factory

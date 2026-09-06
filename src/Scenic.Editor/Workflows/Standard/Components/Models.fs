@@ -14,9 +14,9 @@ open Scenic.Core.Workflows.Standard
 module Models =
 
 
-    let key = EntityKey.Namespace(componentsNS, "model")
+    //let key = EntityKey.Namespace(componentsNS, "model")
 
-    let ``component-type-key`` = V1.Keys.Models.``model-type``
+    let ``component-type-key`` = V1.Keys.Components.``model-type``
 
 
     type NewModelComponentWorkflowControl() as this =
@@ -88,7 +88,7 @@ module Models =
             |> Async.StartImmediate
 
     let factory =
-        ({ Key = key
+        ({ Key = ``component-type-key``
            Name = "Model (standard workflow)"
            CreateNewWorkflowControl = fun () -> NewModelComponentWorkflowControl()
            CreatePreviewWorkflowControl = fun ctx asset -> PreviewModelComponentWorkflowControl()
@@ -96,4 +96,4 @@ module Models =
              fun ctx parentWindow asset -> EditModelComponentWorkflowControl(ctx, parentWindow, asset) }
         : ComponentWorkflowFactory)
 
-    let handler = key, factory
+    let handler = ``component-type-key``, factory

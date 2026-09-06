@@ -20,7 +20,7 @@ module ComponentWorkflows =
     let tryLoadModel (comp: Component) =
         match comp.ComponentType with
         // TODO fix keys for standard work flow
-        | ct when equals (ct.Serialize()) "scenic-editor-std.components:model" ->
+        | ct when equals (ct.Serialize()) (V1.Keys.Components.``model-type``.Serialize()) ->
         //| ct when equals (ct.Serialize()) (V1.Keys.Models.``model-type``.Serialize()) ->
             // Send to v1 to load.
             V1.ComponentWorkFlows.tryLoadModel comp

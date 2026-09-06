@@ -26,36 +26,42 @@ module Keys =
 
         let ``albedo-map`` = EntityKey.Namespace(ns, "albedo-map")
 
-    
+
     [<RequireQualifiedAccess>]
     module Assets =
-        
+
         let ns = $"{nsPrefix}.assets"
-        
+
         let gltf = EntityKey.Namespace(ns, "gltf")
-        
+
+
+    [<RequireQualifiedAccess>]
+    module Components =
+
+        let ns = $"{nsPrefix}.components"
+
+        let ``model-type`` = EntityKey.Namespace(ns, "model")
 
     [<RequireQualifiedAccess>]
     module Models =
         let ns = $"{nsPrefix}.model"
-        
-        
+
         let materialsNS = $"{ns}.materials"
 
         let gltf = EntityKey.Namespace(ns, "gltf")
 
-        let ``model-type`` = EntityKey.Literal ns
 
         /// This is the id of the component asset (from the component_assets table)
         let ``model-asset-id`` = EntityKey.Namespace(ns, "asset-id")
 
         let ``material-slots-scope`` = "material-slots"
 
-        let ``material-slot-count`` = EntityKey.ScopeDefinition(``material-slots-scope``, EntityMetadata.``count-key``)
-              
-        /// This is an unscoped version of the 
+        let ``material-slot-count`` =
+            EntityKey.ScopeDefinition(``material-slots-scope``, EntityMetadata.``count-key``)
+
+        /// This is an unscoped version of the
         let ``material-slot-asset-id`` = EntityKey.Namespace(materialsNS, "asset-id")
-        
+
         let ``material-slot-1-asset-id`` =
             EntityKey.RepeatNamespace(``material-slots-scope``, 0, materialsNS, "asset-id")
 
