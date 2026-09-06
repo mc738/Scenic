@@ -19,10 +19,13 @@
         <Compile Include="Components\Viewport3D.fs" />
         <Compile Include="Controls\SceneGraphControl.fs" />
         <Compile Include="Controls\TransformControl.fs" />
+        <Compile Include="Controls\SelectAssetControl.fs" />
         <Compile Include="Workflows\Standard\Common.fs" />
+        <Compile Include="Workflows\Standard\Dialogs\SelectAssetDialog.fs" />
         <Compile Include="Workflows\Standard\Assets\Common.fs" />
         <Compile Include="Workflows\Standard\Assets\GLFT.fs" />
         <Compile Include="Workflows\Standard\Components\Common.fs" />
+        <Compile Include="Workflows\Standard\Components\Models.fs" />
         <Compile Include="Impl.fs" />
         <Compile Include="Views\AssetStoreManager\Dialogs\NewComponentWindow.fs" />
         <Compile Include="Views\AssetStoreManager\Dialogs\NewAssetWindow.fs" />

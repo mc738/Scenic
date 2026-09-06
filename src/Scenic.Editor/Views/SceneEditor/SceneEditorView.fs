@@ -12,6 +12,7 @@ open CommonResourceFormats.AssetStore.Core.Domain
 open CommonResourceFormats.AssetStore.Operations
 open CommonResourceFormats.AssetStore.Store.Persistence
 open FsToolbox.GLTF
+open FsToolbox.GameDevelopment.Geometry.Types
 open FsToolbox.OpenGL
 open FsToolbox.OpenGL.Geometry
 open FsToolbox.OpenGL.Materials
@@ -140,6 +141,8 @@ type SceneEditorView(ctx: EditorContext, parentWindow: Window, scene: Scene) as 
     // The data in this doesn't need to be saved.
     let objectInstances = Dictionary<EntityId, EditorSceneObjectInstance>()
 
+    
+    let primitivesToBuild = Queue<EntityId * Primitive>()
 
     let mutable viewportGL = Operators.Unchecked.defaultof<GL>
 
@@ -322,8 +325,23 @@ type SceneEditorView(ctx: EditorContext, parentWindow: Window, scene: Scene) as 
 
         member this.RenderScene(gl, view, projection) =
 
+            // OpenGL in avalonia only guarantees the gl context will be active in the rendering loop.
+            // If these are build else where then they will have no affect.
+            while primitivesToBuild.Count > 0 do
+                let (sceneObjectId, primitive) = primitivesToBuild.Dequeue()
+                
+                let em = ElementMesh(primitive.Layout)
+                em.Build(gl, primitive.Vertices, primitive.Indices)
+                              
+                renderBatches.StandardOpaque.Add(RenderBatchItem(sceneObjectId, em))
+                    
             gl.Enable(EnableCap.Blend)
             gl.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha)
+            
+            
+            gl.Enable(EnableCap.DepthTest)
+            gl.DepthFunc(DepthFunction.Less)
+            gl.DepthMask(true)
 
             // Get all object primitives and transforms.
 
@@ -341,7 +359,9 @@ type SceneEditorView(ctx: EditorContext, parentWindow: Window, scene: Scene) as 
             // Sort the batches.
             for bi in renderBatches.StandardOpaque do
                     
-                let transform = transformMap[bi.ObjectId]
+                let mutable transform = Transform.Default // transformMap[bi.ObjectId]
+                
+                transform.Position <- Vector3(0f, 0f, -10f)
                 
                 let distanceToCamera =
                     Vector3.Dot(transform.Position - vpCam.Position, vpCam.Forward)
@@ -351,21 +371,25 @@ type SceneEditorView(ctx: EditorContext, parentWindow: Window, scene: Scene) as 
             
             let material = viewport.GetMaterial(ScenicEditorMaterialType.Unlit)
             
+            material.Use()
+            
             material.BindViewProjection(view, projection)
                 
             for bi in renderBatches.StandardOpaque |> Seq.sortBy _.DistanceToCamera do
+                 
+                material.BindModel(Transform.Default.ViewMatrix)
+                
                 bi.Mesh.Bind()
-                
-                
-                material.BindModel(bi.ModelMatrix)
-                
-                
+               
                 render.DrawElements(PrimitiveType.Triangles, DrawElementsType.UnsignedInt, bi.Mesh.IndicesCount)
                 
             
             // TODO handle transparent.
              
-            editorGrid.Draw(view, projection, viewport.CameraPosition)
+            debugPlane.Bind(view, projection)
+            render.DrawElements(PrimitiveType.Triangles, DrawElementsType.UnsignedInt, 6u)
+            
+            //editorGrid.Draw(view, projection, viewport.CameraPosition)
 
         member this.ViewportLoaded(gl) =
             debugPlane <- DebugPlane(gl)
@@ -436,9 +460,19 @@ type SceneEditorView(ctx: EditorContext, parentWindow: Window, scene: Scene) as 
                 printfn $"Error: {errorValue}"
                 failwith "todo"
             | Ok newModel ->
-                match objectInstances.TryGetValue e.SceneObjectId with
-                | false, _ -> ()
-                | true, so ->
+                //match objectInstances.TryGetValue e.SceneObjectId with
+                //| false, _ -> ()
+                //| true, so ->
+                    for mesh in newModel.Meshes do
+                          for primitive in mesh.Primitives do
+                              // TODO clean up
+                              primitivesToBuild.Enqueue(e.SceneObjectId, primitive)
+                              //let em = ElementMesh(primitive.Layout)
+                              //em.Build(viewportGL, primitive.Vertices, primitive.Indices)
+                              
+                              //renderBatches.StandardOpaque.Add(RenderBatchItem(e.SceneObjectId, em))
+                    
+                    (*
                     [ for mesh in newModel.Meshes do
                           for primitive in mesh.Primitives do
                               // TODO clean up
@@ -449,6 +483,7 @@ type SceneEditorView(ctx: EditorContext, parentWindow: Window, scene: Scene) as 
                               
                               yield { Mesh = em; MaterialId = ScenicEditorUnlitMaterial.EntityId } ]
                     |> so.Primitives.AddRange
+                    *)
 
     member this.AddSceneObject(parent: TreeViewItem option) =
         let eId = EntityId.Create()

@@ -23,22 +23,22 @@ type AssetManagerView(ctx: EditorContext, parent: Window) as this =
 
     let listingsPanel = StackPanel()
 
-    
+
     let mainView = Grid()
-    
+
     do
-        
+
         let mainViewBorder = Border()
         mainViewBorder.VerticalAlignment <- VerticalAlignment.Stretch
         mainViewBorder.HorizontalAlignment <- HorizontalAlignment.Stretch
-        
+
         mainViewBorder.Child <- mainView
-        
+
         mainView.VerticalAlignment <- VerticalAlignment.Stretch
         mainView.HorizontalAlignment <- HorizontalAlignment.Stretch
-        
-        
-        
+
+
+
         let mi = new MenuItem(Header = "New")
 
         mi.Click.Add(this.AddNewAsset)
@@ -68,7 +68,7 @@ type AssetManagerView(ctx: EditorContext, parent: Window) as this =
 
         listingsPanel.Children.Add(listingsBox)
 
-        listingsPanel.Background <- SolidColorBrush(Color(255uy, 0uy, 255uy, 255uy))
+        //listingsPanel.Background <- SolidColorBrush(Color(255uy, 0uy, 255uy, 255uy))
 
         listingsBox.SelectionChanged.Add(this.SelectionChanged)
         listingsBox.SelectionMode <- SelectionMode.Single
@@ -92,23 +92,26 @@ type AssetManagerView(ctx: EditorContext, parent: Window) as this =
             let lbi = e.AddedItems[0] :?> ListBoxItem
 
             let eli = lbi.DataContext :?> EntitiesListingItem
-            
+
             // Get asset
             let versionId = eli.Versions |> List.maxBy (fun v -> v.Version) |> _.Id
-            
-            
+
+
             match ctx.ScenicContext.AssetStore.GetAssetVersion(versionId) with
             | Error errorValue -> printfn $"*********** {errorValue}"
             | Ok resultValue ->
                 match ctx.WorkflowHandlers.Assets.Factories.TryFind resultValue.AssetType with
-                | None -> failwith "todo"
+                | None ->
+                    // TODO: Display raw preview
+
+                    failwith "todo"
                 | Some wff ->
-                    let preview = wff.CreatePreviewAssetWorkflowControl ctx.ScenicContext resultValue
+                    let preview = wff.CreatePreviewWorkflowControl ctx.ScenicContext resultValue
                     mainView.Children.Clear()
-                    
+
                     mainView.Children.Add(preview)
                     ()
-                    
+
             ()
 
     member _.PopulateListings() =

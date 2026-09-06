@@ -6,6 +6,7 @@ open Avalonia.Controls.Primitives
 open Avalonia.Input
 open Avalonia.Interactivity
 open Avalonia.Layout
+open Avalonia.Media
 open Scenic.Editor.Core.Domain
 
 
@@ -35,10 +36,10 @@ module Dsl =
     module Control =
 
         let withDataContext<'T, 'TControl when 'TControl :> StyledElement> (data: 'T) (c: 'TControl) =
-                       
+
             c.DataContext <- data
             c
-        
+
         let tryGetDataContext<'T> (c: Control) =
             try
                 c.DataContext :?> 'T |> Ok
@@ -49,19 +50,21 @@ module Dsl =
     module SelectingItemsControl =
 
         let withItems<'T when 'T :> SelectingItemsControl> (clearCurrent: bool) (items: Control seq) (c: 'T) =
-            if clearCurrent then c.Items.Clear()
-            
-            for item in items do
-                c.Items.Add(item) |> ignore
-                
-            c
-            
-        let setItems<'T when 'T :> SelectingItemsControl> (clearCurrent: bool)  (items: Control seq) (c: 'T) =
-            if clearCurrent then c.Items.Clear()
+            if clearCurrent then
+                c.Items.Clear()
 
             for item in items do
                 c.Items.Add(item) |> ignore
-                
+
+            c
+
+        let setItems<'T when 'T :> SelectingItemsControl> (clearCurrent: bool) (items: Control seq) (c: 'T) =
+            if clearCurrent then
+                c.Items.Clear()
+
+            for item in items do
+                c.Items.Add(item) |> ignore
+
     [<AutoOpen>]
     module Panel =
 
@@ -113,14 +116,13 @@ module Dsl =
                 stackPanel.HorizontalAlignment <- HorizontalAlignment.Stretch
 
             stackPanel
-            
-        let createDefault () =
-            create ControlStyle.Default
-            
+
+        let createDefault () = create ControlStyle.Default
+
         let withOrientation (o: Orientation) (sp: StackPanel) =
             sp.Orientation <- o
             sp
-           
+
         let withChild (child: Control) (stackPanel: StackPanel) =
             stackPanel.Children.Add(child)
             stackPanel
@@ -166,9 +168,8 @@ module Dsl =
                 c.Classes.Add(cl)
 
             c
-            
-        let createDefault () =
-            create ControlStyle.Default
+
+        let createDefault () = create ControlStyle.Default
 
         let withContent (content: obj) (l: Label) =
             l.Content <- content
@@ -282,7 +283,7 @@ module Dsl =
         let withSelectionChanged (fn: SelectionChangedEventArgs -> unit) (cb: ComboBox) =
             cb.SelectionChanged.Add fn
             cb
-         
+
         let onSelectionChanged (fn: SelectionChangedEventArgs -> unit) (cb: ComboBox) = cb.SelectionChanged.Add fn
 
     [<RequireQualifiedAccess>]
@@ -303,13 +304,12 @@ module Dsl =
 
             c
 
-        let createDefault () =
-            create ControlStyle.Default
-            
+        let createDefault () = create ControlStyle.Default
+
         let withContent (content: obj) (cbi: ComboBoxItem) =
             cbi.Content <- content
             cbi
-    
+
     [<RequireQualifiedAccess>]
     module Button =
         let create (style: ControlStyle) =
@@ -335,7 +335,6 @@ module Dsl =
         let onClick (fn: RoutedEventArgs -> unit) (btn: Button) =
             btn.Click.Add fn
             btn
-
 
     [<RequireQualifiedAccess>]
     module ContextMenu =
@@ -390,3 +389,45 @@ module Dsl =
         let withCommand (fn: unit -> unit) (mi: MenuItem) =
             mi.Command <- RelayCommand(fn, (fun () -> true))
             mi
+
+
+    module Presets =
+
+        [<RequireQualifiedAccess>]
+        module Titles =
+
+            let dialog text =
+                TextBlock(Text = text, FontWeight = FontWeight.Bold)
+
+
+        module Labels =
+
+            let input (content: obj) (target: IInputElement) =
+                Label.createDefault () |> Label.withContent content |> Label.withTarget target
+
+        module Buttons =
+
+
+            let group (buttons: Button seq) =
+                StackPanel.createDefault ()
+                |> StackPanel.withOrientation Orientation.Horizontal
+                |> withChildren (buttons |> Seq.cast<Control>)
+
+            let general (content: obj) (fn: RoutedEventArgs -> unit) =
+                Button.create ControlStyle.Default
+                |> Button.withContent content
+                |> Button.onClick fn
+            
+            let success (content: obj) (fn: RoutedEventArgs -> unit) =
+                Button.create
+                    { ControlStyle.Default with
+                        Classes = [ "ok" ] }
+                |> Button.withContent content
+                |> Button.onClick fn
+
+            let cancel (content: obj) (fn: RoutedEventArgs -> unit) =
+                Button.create
+                    { ControlStyle.Default with
+                        Classes = [ "cancel" ] }
+                |> Button.withContent content
+                |> Button.onClick fn

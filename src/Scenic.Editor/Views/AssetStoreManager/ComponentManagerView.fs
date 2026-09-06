@@ -21,6 +21,9 @@ type ComponentManagerView(ctx: EditorContext, parent: Window) as this =
     
     let listingsPanel = StackPanel()
     
+    
+    let mainView = Grid()
+    
     do
         
         let mi = new MenuItem(Header = "New")
@@ -59,11 +62,14 @@ type ComponentManagerView(ctx: EditorContext, parent: Window) as this =
         
         listingsPanel.Children.Add(listingsBox)
         
+        listingsBox.SelectionChanged.Add(this.SelectionChanged)
+        
+        
         dockPanel.Children.Add(listingsPanel)
 
         layout.Children.Add(menu)
         layout.Children.Add(dockPanel)
-        dockPanel.Children.Add(TextBlock(Text=  "Hello, World"))
+        dockPanel.Children.Add(mainView)
 
         this.Child <- layout
         
@@ -74,12 +80,12 @@ type ComponentManagerView(ctx: EditorContext, parent: Window) as this =
         listingsBox.Items.Clear()
         
         for listing in listings.Entities do
-            listingsBox.Items.Add(new ListBoxItem(Content = listing.Name, Name = listing.Name, DataContext = listing.Id)) |> ignore
+            listingsBox.Items.Add(new ListBoxItem(Content = listing.Name, Name = listing.Name, DataContext = listing)) |> ignore
        
          
     member _.AddNewComponent(e: RoutedEventArgs) =
          async {
-            let newComponentWindow = NewComponentWindow()
+            let newComponentWindow = NewComponentWindow(ctx.WorkflowHandlers.Components)
             
             let! newComponent = newComponentWindow.ShowDialog<NewComponent option>(parent) |> Async.AwaitTask
             
@@ -91,4 +97,34 @@ type ComponentManagerView(ctx: EditorContext, parent: Window) as this =
                 // TODO make better, just add to existing list?
                 this.PopulateListings() 
          }
-         |> Async.StartImmediate 
+         |> Async.StartImmediate
+    
+    member _.SelectionChanged(e: SelectionChangedEventArgs) =
+        if e.AddedItems.Count = 0 then
+
+            ()
+        else
+
+            let lbi = e.AddedItems[0] :?> ListBoxItem
+
+            let eli = lbi.DataContext :?> EntitiesListingItem
+
+            // Get asset
+            let versionId = eli.Versions |> List.maxBy (fun v -> v.Version) |> _.Id
+
+            match ctx.ScenicContext.AssetStore.GetComponentVersion(versionId) with
+            | Error errorValue -> printfn $"*********** {errorValue}"
+            | Ok resultValue ->
+                let comp = resultValue.Component
+
+                match ctx.WorkflowHandlers.Components.Factories.TryFind comp.ComponentType with
+                | None ->
+                    // TODO: Display raw preview
+
+                    failwith "todo"
+                | Some wff ->
+                    let control = wff.CreateEditWorkflowControl ctx.ScenicContext parent comp
+                    mainView.Children.Clear()
+
+                    mainView.Children.Add(control)
+                    ()

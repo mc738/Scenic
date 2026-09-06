@@ -1,9 +1,13 @@
 ﻿module Scenic.Editor.AssetStoreManager.Dialogs
 
 open Avalonia.Controls
+open Avalonia.Controls.Presenters
+open Avalonia.Interactivity
 open Avalonia.Layout
 open Avalonia.Media
 open CommonResourceFormats.AssetStore.Core.Domain
+open Scenic.Editor.Core.Workflows.Types
+open Scenic.Editor.Core.Dsl
 
 type SupportedComponentType =
     | Model
@@ -13,7 +17,7 @@ type SupportedComponentType =
         | Model -> "model"
 
 
-type NewComponentWindow() as this =
+type NewComponentWindow(workflows: ComponentWorkflowsHandler) as this =
     inherit Window()
 
     let mutable selectedAssetType =
@@ -21,86 +25,174 @@ type NewComponentWindow() as this =
 
     let nameBox = TextBox()
 
-
     let confirmButton = Button()
     let cancelButton = Button()
 
+    let mutable workflowControl: NewComponentWorkflowControl option = None
+
+    let workflowSpecificContent = ContentPresenter()
+
+    let componentTypeBox = ComboBox()
 
     do
         this.WindowDecorations <- WindowDecorations.None
 
-        this.Height <- 200
+        this.Height <- 300
         this.Width <- 400
         this.WindowStartupLocation <- WindowStartupLocation.CenterOwner
         this.Title <- "Create new component"
 
-        let layout = StackPanel()
+        //let layout = StackPanel()
+//
+        //let title = TextBlock(Text = "Create new component", FontWeight = FontWeight.Bold)
+//
+        //let nameLabel = Label(Content = "Name", Target = nameBox)
+//
+        //let componentTypeBox = ComboBox()
+//
+        //let componentTypeLabel =
+        //    Label(Content = "Component type", Target = componentTypeBox)
+//
+        //componentTypeBox.Items.Add(new ComboBoxItem(Content = "Model", DataContext = SupportedComponentType.Model))
+        //|> ignore
 
-        let title = TextBlock(Text = "Create new component", FontWeight = FontWeight.Bold)
+        //let assetPathLabel = Label(Content = "Path", Target = componentTypeBox)
 
-        let nameLabel = Label(Content = "Name", Target = nameBox)
+        //componentTypeBox.SelectionChanged.Add(fun e ->
+        //    if e.AddedItems.Count = 0 then
+        //        ()
+        //    else
+        //        let item = e.AddedItems[0]
+//
+        //        let cb = item :?> ComboBoxItem
+//
+        //        let sat = cb.DataContext :?> SupportedComponentType
+        //        selectedAssetType <- sat
+//
+        //        ())
 
-        let componentTypeBox = ComboBox()
+        //confirmButton.Content <- "Create"
+        //cancelButton.Content <- "Cancel"
+//
+        //confirmButton.Classes.Add("ok")
+        //cancelButton.Classes.Add("cancel")
+//
+        //confirmButton.Click.Add(fun e ->
+        //    printfn "Ok!!"
+//
+        //    match workflowControl with
+        //    | None -> ()
+        //    | Some wfc ->
+//
+        //        let comp =
+        //            ({ Id = EntityId.Create()
+        //               VersionId = EntityId.Create()
+        //               Name = nameBox.Text
+        //               ComponentType = wfc.GetComponentType()
+        //               Metadata = EntityMetadata.Empty
+        //               VersionMetadata = EntityMetadata.Empty
+        //               SerializedData = "" }
+        //            : NewComponent)
+//
+        //        this.Close(Some comp))
+//
+        //cancelButton.Click.Add(fun e ->
+        //    printfn "Cancel"
+//
+        //    this.Close(None)
+        //    ())
 
-        let componentTypeLabel =
-            Label(Content = "Component type", Target = componentTypeBox)
+        //let buttonsLayout = StackPanel()
+        //buttonsLayout.Orientation <- Orientation.Horizontal
+        //buttonsLayout.Children.Add(confirmButton)
+        //buttonsLayout.Children.Add(cancelButton)
+//
+        //layout.Children.Add(title)
+        //layout.Children.Add(nameLabel)
+        //layout.Children.Add(nameBox)
+        //layout.Children.Add(componentTypeLabel)
+        //layout.Children.Add(componentTypeBox)
+//
+        //layout.Children.Add(buttonsLayout)
+//
+        //this.Content <- layout
 
-        componentTypeBox.Items.Add(new ComboBoxItem(Content = "Model", DataContext = SupportedComponentType.Model))
-        |> ignore
+        this.Content <-
+            StackPanel.create ControlStyle.Fill
+            |> withChildren
+                [ TextBlock(Text = "Create new component", FontWeight = FontWeight.Bold)
 
-        let assetPathLabel = Label(Content = "Path", Target = componentTypeBox)
+                  Label.createDefault ()
+                  |> Label.withContent "Component name"
+                  |> Label.withTarget nameBox
+                  nameBox
 
-        componentTypeBox.SelectionChanged.Add(fun e ->
-            if e.AddedItems.Count = 0 then
-                ()
-            else
-                let item = e.AddedItems[0]
+                  Label.createDefault ()
+                  |> Label.withContent "Component type"
+                  |> Label.withTarget componentTypeBox
 
-                let cb = item :?> ComboBoxItem
+                  componentTypeBox
+                  |> withItems
+                      false
+                      [ for listing in workflows.GetListings() do
+                            ComboBoxItem(Content = listing.Name, DataContext = listing.Key) ]
+                  |> ComboBox.withSelectionChanged this.OnTypeSelectionChanged
 
-                let sat = cb.DataContext :?> SupportedComponentType
-                selectedAssetType <- sat
+                  workflowSpecificContent
 
-                ())
+                  StackPanel.createDefault ()
+                  |> StackPanel.withOrientation Orientation.Horizontal
+                  |> withChildren
+                      [ Button.create
+                            { ControlStyle.Default with
+                                Classes = [ "ok" ] }
+                        |> Button.withContent "Add"
+                        |> Button.onClick this.OnOk
+                        Button.create
+                            { ControlStyle.Default with
+                                Classes = [ "cancel" ] }
+                        |> Button.withContent "Cancel"
+                        |> Button.onClick this.OnCancel ]
 
-        confirmButton.Content <- "Create"
-        cancelButton.Content <- "Cancel"
+                  ]
 
-        confirmButton.Classes.Add("ok")
-        cancelButton.Classes.Add("cancel")
+    member _.OnOk(e: RoutedEventArgs) =
+        printfn "Ok!!"
 
-        confirmButton.Click.Add(fun e ->
+        match workflowControl with
+        | None -> ()
+        | Some wfc ->
             printfn "Ok!!"
 
             let comp =
                 ({ Id = EntityId.Create()
                    VersionId = EntityId.Create()
                    Name = nameBox.Text
-                   ComponentType = selectedAssetType
+                   ComponentType = wfc.GetComponentType()
                    Metadata = EntityMetadata.Empty
                    VersionMetadata = EntityMetadata.Empty
                    SerializedData = "" }
                 : NewComponent)
 
-            this.Close(Some comp))
+            this.Close(Some comp)
 
-        cancelButton.Click.Add(fun e ->
-            printfn "Cancel"
+    member _.OnCancel(e: RoutedEventArgs) = this.Close(None)
 
-            this.Close(None)
-            ())
+    member _.OnTypeSelectionChanged(e: SelectionChangedEventArgs) =
+        if e.AddedItems.Count = 0 then
+            ()
+        else
+            let item = e.AddedItems[0]
 
-        let buttonsLayout = StackPanel()
-        buttonsLayout.Orientation <- Orientation.Horizontal
-        buttonsLayout.Children.Add(confirmButton)
-        buttonsLayout.Children.Add(cancelButton)
+            let cb = item :?> ComboBoxItem
 
-        layout.Children.Add(title)
-        layout.Children.Add(nameLabel)
-        layout.Children.Add(nameBox)
-        layout.Children.Add(componentTypeLabel)
-        layout.Children.Add(componentTypeBox)
+            let sat = cb.DataContext :?> EntityKey
 
-        layout.Children.Add(buttonsLayout)
+            match workflows.Factories.TryFind sat with
+            | None -> failwith "todo"
+            | Some value ->
+                //  Clear the work flow specific stuff.
+                let newControl = value.CreateNewWorkflowControl()
 
-        this.Content <- layout
+                workflowControl <- Some newControl
+                workflowSpecificContent.Content <- newControl

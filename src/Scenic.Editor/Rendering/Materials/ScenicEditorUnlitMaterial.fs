@@ -8,18 +8,23 @@ open Silk.NET.OpenGL
 
 type ScenicEditorUnlitMaterial(shader: OpenGLShader) =
     inherit OpenGLMaterial(shader)
-    
+
     /// A fixed entity ID that will always be used for this.
-    static member EntityId = Guid.Parse("7CC0B76D-0552-4C95-9AFB-5E83488AB92A") |> EntityId.Guid 
-    
+    static member EntityId = Guid.Parse("7CC0B76D-0552-4C95-9AFB-5E83488AB92A") |> EntityId.Guid
+
     static member Create(gl: GL) =
-        let shader = OpenGLShader.CreateFromFile(gl, "", "")
-        
+        let shader =
+            OpenGLShader.CreateFromFile(
+                gl,
+                @"C:\Users\mclif\Projects\dotnet\Scenic\src\Shaders\editor_unlit.vert",
+                @"C:\Users\mclif\Projects\dotnet\Scenic\src\Shaders\editor_unlit.frag"
+            )
+
         ScenicEditorUnlitMaterial(shader)
-    
+
     member _.Test() = ()
-    
+
     override this.OnModelBind() =
-        
-        
+
+
         ()

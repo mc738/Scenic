@@ -16,6 +16,6 @@ module Extensions =
                 )
                 .WithComponentHandlers(
                     [
-
+                        Standard.Components.Models.handler
                     ]
                 )
