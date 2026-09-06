@@ -9,13 +9,14 @@ open Scenic.Editor.Core.Dsl
 open Scenic.Editor.Core.Dsl.Presets
 open Scenic.Editor.Core.Workflows.Types
 open Scenic.Editor.Workflows.Standard.Dialogs
+open Scenic.Core.Workflows.Standard
 
 module Models =
 
 
     let key = EntityKey.Namespace(componentsNS, "model")
 
-    let ``component-type-key`` = key
+    let ``component-type-key`` = V1.Keys.Models.``model-type``
 
 
     type NewModelComponentWorkflowControl() as this =

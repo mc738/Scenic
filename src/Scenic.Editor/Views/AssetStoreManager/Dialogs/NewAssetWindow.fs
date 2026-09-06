@@ -22,9 +22,6 @@ type NewAssetWindow(workflows: AssetWorkflowsHandler) as this =
 
     let isPrototypeBox = CheckBox()
 
-    let confirmButton = Button()
-    let cancelButton = Button()
-
     let assetTypeBox = ComboBox()
 
     let mutable workflowControl: NewAssetWorkflowControl option = None
@@ -33,100 +30,11 @@ type NewAssetWindow(workflows: AssetWorkflowsHandler) as this =
 
     do
         this.WindowDecorations <- WindowDecorations.None
-
+        
         this.Height <- 300
         this.Width <- 400
         this.WindowStartupLocation <- WindowStartupLocation.CenterOwner
         this.Title <- "Create new asset"
-
-        //let layout = StackPanel()
-
-        //let title = TextBlock(Text = "Create new asset", FontWeight = FontWeight.Bold)
-
-        //let nameLabel = Label(Content = "Name", Target = nameBox)
-
-        //let assetTypeBox = ComboBox()
-
-        //let protoTypeLabel = Label(Content = "Is prototype", Target = isPrototypeBox)
-
-        //let assetTypeLabel = Label(Content = "Asset type", Target = assetTypeBox)
-
-        //for listing in workflows.GetListings() do
-        //    assetTypeBox.Items.Add(new ComboBoxItem(Content = "Model", DataContext = listing.Key))
-        //    |> ignore
-
-        //let assetPathLabel = Label(Content = "Path", Target = assetTypeBox)
-
-        //let apLayout = StackPanel()
-        //apLayout.Orientation <- Orientation.Horizontal
-
-        //pathLabel.HorizontalAlignment <- HorizontalAlignment.Stretch
-
-        //apLayout.Children.Add(pathLabel)
-
-        //let b = new Button(Content = "Select")
-
-        //b.Width <- 50
-        //b.Click.Add(fun e -> this.OpenFile(this, e))
-
-        //apLayout.Children.Add(b)
-
-        (*
-        assetTypeBox.SelectionChanged.Add(fun e ->
-            if e.AddedItems.Count = 0 then
-                ()
-            else
-                let item = e.AddedItems[0]
-
-                let cb = item :?> ComboBoxItem
-
-                let sat = cb.DataContext :?> EntityKey
-
-                match workflows.Factories.TryFind sat with
-                | None -> failwith "todo"
-                | Some value ->
-                    //  Clear the work flow specific stuff.
-                    let newControl = value.CreateNewAssetWorkflowControl()
-
-                    workflowControl <- Some newControl)
-        *)
-
-        //confirmButton.Content <- "Create"
-        //cancelButton.Content <- "Cancel"
-        //
-        //confirmButton.Classes.Add("ok")
-        //cancelButton.Classes.Add("cancel")
-        //
-        //confirmButton.Click.Add(fun e ->
-        //    )
-        //
-        //cancelButton.Click.Add(fun e ->
-        //    printfn "Cancel"
-        //
-        //    this.Close(None)
-        //    ())
-
-        //let buttonsLayout = StackPanel()
-        //buttonsLayout.Orientation <- Orientation.Horizontal
-        //buttonsLayout.Children.Add(confirmButton)
-        //buttonsLayout.Children.Add(cancelButton)
-
-        //layout.Children.Add(title)
-        //layout.Children.Add(nameLabel)
-        //layout.Children.Add(nameBox)
-        //layout.Children.Add(protoTypeLabel)
-        //layout.Children.Add(isPrototypeBox)
-        //layout.Children.Add(Label(Content = "Path"))
-        //layout.Children.Add(apLayout)
-        //layout.Children.Add(assetTypeLabel)
-        //layout.Children.Add(assetTypeBox)
-        //
-        //layout.Children.Add(assetTypeSpecificContent)
-        //
-        //layout.Children.Add(buttonsLayout)
-        //
-        //this.Content <- layout
-
 
         this.Content <-
             StackPanel.create ControlStyle.Fill
@@ -177,8 +85,6 @@ type NewAssetWindow(workflows: AssetWorkflowsHandler) as this =
 
 
     member _.OnOk(e: RoutedEventArgs) =
-        printfn "Ok!!"
-
         match workflowControl with
         | None -> ()
         | Some wfc ->
@@ -215,7 +121,6 @@ type NewAssetWindow(workflows: AssetWorkflowsHandler) as this =
 
                 workflowControl <- Some newControl
                 workflowSpecificContent.Content <- newControl
-
 
     member _.OpenFile(args: RoutedEventArgs) =
         async {

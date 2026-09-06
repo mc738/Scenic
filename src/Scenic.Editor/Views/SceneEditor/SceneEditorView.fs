@@ -30,103 +30,6 @@ open Silk.NET.OpenGL
 open Avalonia.Interactivity
 open FsToolbox.GameDevelopment.Core.Types
 
-// # Material type naming
-//
-// [namespace]:[type]
-//
-// ## Examples
-//
-// opengl-material:basis
-// opengl-material:unlit
-// opengl-material:lit etc.
-//
-// # Shader type naming
-//
-// opengl-shader:vert
-// opengl-shader:frag
-//
-// # Images/textures
-//
-// texture:colour
-// texture:normal
-// texture:
-// img
-//
-// # Models
-// gltf
-
-(*
-module RenderImportWorkflows =
-
-
-    module Standard =
-
-        module V1 =
-
-            [<RequireQualifiedAccess>]
-            module Keys =
-
-                let ``component-model`` = EntityKey.Namespace(scenicNS, "component-model")
-
-                let ``asset-importer`` = EntityKey.Namespace(scenicNS, "asset-importer")
-                
-                let ``material-slot`` = EntityKey.Namespace(scenicNS, "material-slot")
-                
-            let loadModel (comp: Component) =
-                match
-                    comp.Assets
-                    |> Seq.tryFind (fun ca ->
-                        ca.Metadata.TryGetBool(Keys.``component-model``)
-                        |> Option.defaultValue false)
-                with
-                | None -> Error "No assets are marked as the component model for this component"
-                | Some ca ->
-                    match ca.Asset.Metadata.TryGet(Keys.``asset-importer``) with
-                    | None -> Error "Missing asset importer value"
-                    | Some "gltf" -> GLTFLoader.loadModel (ca.Asset.Path.Serialize()) |> Ok
-                    | Some v -> Error $"Unknown asset importer: {v}"
-
-            let tryLoadOpenGLMaterial (comp: Component)=
-                //comp.Assets
-                //|> Seq.filter (fun )
-                
-                
-                match
-                    comp.Assets
-                    |> Seq.tryFind (fun ca ->
-                        
-                        ca.Metadata.TryGetBool(Keys.``component-model``)
-                        |> Option.defaultValue false)
-                with
-                | None -> Error "No assets are marked as the component model for this component"
-                | Some ca ->
-                    match ca.Asset.AssetType with
-                    | "opengl-material" ->
-                        Ok ()
-                    | at -> Error $"Incorrect asset type: {at}"
-                    match ca.Asset.Metadata.TryGet(Keys.``asset-importer``) with
-                    | None -> Error "Missing asset importer value"
-                    | Some "gltf" -> GLTFLoader.loadModel (ca.Asset.Path.Serialize()) |> Ok
-                    | Some v -> Error $"Unknown asset importer: {v}"
-    
-    [<RequireQualifiedAccess>]
-    module Keys =
-
-        let ``renderer-import-workflow`` = EntityKey.Namespace (scenicNS, "renderer-import-workflow")
-
-    let tryLoadModel (comp: Component) =
-
-        match comp.Metadata.TryGet(Keys.``renderer-import-workflow``) with
-        | None -> Error "No renderer import workflow found"
-        | Some "standard"
-        | Some "standard-v1" ->
-            // "scenic:asset-importer" "gltf"
-
-            Standard.V1.loadModel comp
-        | Some v ->
-            // Unknown render handler
-            Error "No renderer import workflow found"
-*)
 
 type SceneEditorView(ctx: EditorContext, parentWindow: Window, scene: Scene) as this =
     inherit DockPanel()
@@ -257,8 +160,7 @@ type SceneEditorView(ctx: EditorContext, parentWindow: Window, scene: Scene) as 
                 printfn $"Object selected: {id}"
 
                 objectPanel.SetObject(objects[id])
-
-
+                
                 ())
 
         this.BuildTransformMap()
@@ -266,17 +168,6 @@ type SceneEditorView(ctx: EditorContext, parentWindow: Window, scene: Scene) as 
 
     interface IViewportHost with
         member this.RequestScene() =
-            (*
-            match scene with
-            | Some s -> Some s
-            | None ->
-                match viewport.GL with
-                | None -> None
-                | Some gl ->
-                    //cm <- ContentManager(ctx.GetService<ILoggerFactory>().CreateLogger<ContentManager>(), gl)
-                    //scene <- Some(Test.loadScene cm)
-                    scene
-            *)
             None
 
         member this.OnScreenRaycast(ray, t) =
@@ -460,31 +351,11 @@ type SceneEditorView(ctx: EditorContext, parentWindow: Window, scene: Scene) as 
                 printfn $"Error: {errorValue}"
                 failwith "todo"
             | Ok newModel ->
-                //match objectInstances.TryGetValue e.SceneObjectId with
-                //| false, _ -> ()
-                //| true, so ->
-                    for mesh in newModel.Meshes do
-                          for primitive in mesh.Primitives do
-                              // TODO clean up
-                              primitivesToBuild.Enqueue(e.SceneObjectId, primitive)
-                              //let em = ElementMesh(primitive.Layout)
-                              //em.Build(viewportGL, primitive.Vertices, primitive.Indices)
-                              
-                              //renderBatches.StandardOpaque.Add(RenderBatchItem(e.SceneObjectId, em))
-                    
-                    (*
-                    [ for mesh in newModel.Meshes do
-                          for primitive in mesh.Primitives do
-                              // TODO clean up
-                              let em = ElementMesh(primitive.Layout)
-                              em.Build(viewportGL, primitive.Vertices, primitive.Indices)
-                              
-                              renderBatches.StandardOpaque.Add(RenderBatchItem(e.SceneObjectId, em))
-                              
-                              yield { Mesh = em; MaterialId = ScenicEditorUnlitMaterial.EntityId } ]
-                    |> so.Primitives.AddRange
-                    *)
-
+                for mesh in newModel.Meshes do
+                      for primitive in mesh.Primitives do
+                          // TODO make a bit more "proper".
+                          primitivesToBuild.Enqueue(e.SceneObjectId, primitive)
+                             
     member this.AddSceneObject(parent: TreeViewItem option) =
         let eId = EntityId.Create()
         let name = "New object"

@@ -26,6 +26,14 @@ module Keys =
 
         let ``albedo-map`` = EntityKey.Namespace(ns, "albedo-map")
 
+    
+    [<RequireQualifiedAccess>]
+    module Assets =
+        
+        let ns = $"{nsPrefix}.assets"
+        
+        let gltf = EntityKey.Namespace(ns, "gltf")
+        
 
     [<RequireQualifiedAccess>]
     module Models =

@@ -86,10 +86,7 @@ type MainWindow(ctx: EditorContext) as this =
                     printfn $"Failed to load scene: {e}"
                 | Ok scene ->
                     
-                    
-                    
-                    
-                    let newTab = new TabItem(Header = scene.Name)
+                    let newTab = TabItem(Header = scene.Name)
                     
                     let g = Grid()
                     

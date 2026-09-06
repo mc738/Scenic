@@ -42,16 +42,7 @@ type ComponentManagerView(ctx: EditorContext, parent: Window) as this =
         DockPanel.SetDock(menu, Dock.Top)
         DockPanel.SetDock(listingsPanel, Dock.Left)
         
-        //let layout = StackPanel()
-        
-        //dockPanel.Children.Add(listingsPanel)
-        
-        //layout.Children.Add(menu)
-        //layout.Children.Add(dockPanel)
-        
         listingsPanel.Width <- 250
-        
-        //this.Background <- SolidColorBrush(Color(255uy, 0uy, 255uy, 255uy))
         
         let layout = StackPanel()
         layout.HorizontalAlignment <- HorizontalAlignment.Stretch

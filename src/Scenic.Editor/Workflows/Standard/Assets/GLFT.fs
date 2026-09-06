@@ -5,13 +5,14 @@ open CommonResourceFormats.AssetStore.Core.Domain
 open Scenic.Core
 open Scenic.Core.Workflows.Common
 open Scenic.Editor.Core.Workflows.Types
+open Scenic.Core.Workflows.Standard
 
 module GLTF =
 
     
     let key = EntityKey.Namespace (assetsNS, "gltf")
     
-    let ``asset-type-key`` = key
+    let ``asset-type-key`` = V1.Keys.Assets.gltf
     
     type NewGLTFAssetWorkflowControl() as this =
         inherit NewAssetWorkflowControl()
