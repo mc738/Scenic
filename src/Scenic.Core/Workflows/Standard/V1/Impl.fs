@@ -10,20 +10,22 @@ module ComponentWorkFlows =
     let tryLoadModel (comp: Component) =
         // Try and get the model asset id from the version first.
         // If this fails, get it from the component metadata as a fallback.
-        let k = Keys.Models.``model-asset-id``
-        
+        let modelAssetIdKey = Keys.Models.``model-asset-id``
+
         match
-            comp.VersionMetadata.TryGet Keys.Models.``model-asset-id``
-            |> Option.orElse (comp.Metadata.TryGet Keys.Models.``model-asset-id``)
+            comp.VersionMetadata.TryGet modelAssetIdKey
+            |> Option.orElse (comp.Metadata.TryGet modelAssetIdKey)
         with
-        | None -> Error ""
+        | None -> Error $"Could not find `{modelAssetIdKey.Serialize()}` metadata value"
         | Some mId ->
             match comp.Assets.TryGetValue(EntityId.Deserialize mId) with
-            | false, _ -> Error ""
+            | false, _ -> Error $"Could not find component asset `{mId}`"
             | true, { Asset = asset } ->
+                let sat = asset.AssetType.Serialize()
+
                 match asset.AssetType.Serialize().Equals(Keys.Assets.gltf.Serialize()) with
-                | false -> failwith "todo"
-                | true -> GLTFLoader.loadModel (asset.Path.Serialize()) |> Ok
+                | _ when sat.Equals(Keys.Assets.gltf.Serialize()) -> GLTFLoader.loadModel (asset.Path.Serialize()) |> Ok
+                | _ -> Error "Unsupported model type"
 
 
     /// <summary>
