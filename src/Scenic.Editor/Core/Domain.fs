@@ -43,3 +43,17 @@ module Domain =
             member this.remove_CanExecuteChanged(value: EventHandler) = ()
 
             member this.Execute(parameter) = action ()
+
+    type ScenicEditorMaterialSlot =
+        { Index: int
+          MaterialId: EntityId option }
+
+    type ScenicEditorMaterialSlots =
+        private
+            { Slots: ScenicEditorMaterialSlot array }
+
+        static member Create(materialSlots: ScenicEditorMaterialSlot seq) =
+            Array.init (materialSlots |> Seq.maxBy _.Index |> _.Index) (fun i ->
+                match materialSlots |> Seq.tryFind (fun s -> s.Index = i) with
+                | Some ms -> ms
+                | None -> { Index = i; MaterialId = None })

@@ -100,16 +100,14 @@ type AssetManagerView(ctx: EditorContext, parent: Window) as this =
             match ctx.ScenicContext.AssetStore.GetAssetVersion(versionId) with
             | Error errorValue -> printfn $"*********** {errorValue}"
             | Ok resultValue ->
-                match resultValue.AssetType with
-                | "model" ->
+                match ctx.WorkflowHandlers.Assets.Factories.TryFind resultValue.AssetType with
+                | None -> failwith "todo"
+                | Some wff ->
+                    let preview = wff.CreatePreviewAssetWorkflowControl ctx.ScenicContext resultValue
                     mainView.Children.Clear()
                     
-                    mainView.Children.Add(TextBlock(Text = "This is a model"))
-                    mainView.Children.Add(TextBlock(Text = $"Id: {resultValue.Id.Serialize()}"))
-                    mainView.Children.Add(TextBlock(Text = $"Version id: {resultValue.VersionId.Serialize()}"))
-                    mainView.Children.Add(TextBlock(Text = $"Version: {resultValue.Version}"))
-                    
-                | _ -> ()
+                    mainView.Children.Add(preview)
+                    ()
                     
             ()
 
@@ -123,7 +121,7 @@ type AssetManagerView(ctx: EditorContext, parent: Window) as this =
 
     member _.AddNewAsset(e: RoutedEventArgs) =
         async {
-            let newAssetWindow = NewAssetWindow()
+            let newAssetWindow = NewAssetWindow(ctx.WorkflowHandlers.Assets)
 
             let! newAsset = newAssetWindow.ShowDialog<NewAsset option>(parent) |> Async.AwaitTask
 

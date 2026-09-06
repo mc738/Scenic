@@ -1,8 +1,8 @@
-﻿namespace Scene.Core.Workflows
+﻿namespace Scenic.Core.Workflows
 
 open System
 open CommonResourceFormats.AssetStore.Core.Domain
-open Scene.Core.Workflows.Standard
+open Scenic.Core.Workflows.Standard
 
 [<AutoOpen>]
 module private Internal =
@@ -19,7 +19,7 @@ module ComponentWorkflows =
 
     let tryLoadModel (comp: Component) =
         match comp.ComponentType with
-        | ct when equals ct (V1.Keys.Models.``model-type``.Serialize()) ->
+        | ct when equals (ct.Serialize()) (V1.Keys.Models.``model-type``.Serialize()) ->
             // Send to v1 to load.
             V1.ComponentWorkFlows.tryLoadModel comp
         | ct -> Error $"Unknown model type: {ct}"

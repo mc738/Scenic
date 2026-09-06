@@ -7,8 +7,10 @@ open CommonResourceFormats.AssetStore
 open CommonResourceFormats.AssetStore.Store
 open Microsoft.Extensions.DependencyInjection
 open Microsoft.Extensions.Logging
-open Scene.Core
+open Scenic.Core
 open Scenic.Editor.Core
+open Scenic.Editor.Core.Workflows.Types
+open Scenic.Editor.Workflows
 
 type App() =
     inherit Application()
@@ -26,7 +28,8 @@ type App() =
         let ctx =
             { ServiceProvider = serviceProvider
               LoggerFactory = serviceProvider.GetService<ILoggerFactory>()
-              ScenicContext = serviceProvider.GetService<ScenicContext>() }
+              ScenicContext = serviceProvider.GetService<ScenicContext>()
+              WorkflowHandlers = WorkflowsBuilder().WithStandardWorkflows().Build() }
 
         match this.ApplicationLifetime with
         | :? IClassicDesktopStyleApplicationLifetime as desktop -> desktop.MainWindow <- MainWindow(ctx)

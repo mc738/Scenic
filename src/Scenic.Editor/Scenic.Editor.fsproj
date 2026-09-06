@@ -7,14 +7,23 @@
 
     <ItemGroup>
         <Compile Include="Core\Domain.fs"/>
+        <Compile Include="Core\Workflows\Types.fs" />
         <Compile Include="Core\EditorContext.fs"/>
         <Compile Include="Core\Input.fs" />
         <Compile Include="Core\EditorGrid.fs" />
         <Compile Include="Core\Dsl.fs" />
+        <Compile Include="Rendering\Materials\ScenicEditorUnlitMaterial.fs" />
+        <Compile Include="Rendering\Materials\Impl.fs" />
+        <Compile Include="Rendering\Impl.fs" />
         <Compile Include="Components\Debugging\DebugPlane.fs" />
         <Compile Include="Components\Viewport3D.fs" />
         <Compile Include="Controls\SceneGraphControl.fs" />
         <Compile Include="Controls\TransformControl.fs" />
+        <Compile Include="Workflows\Standard\Common.fs" />
+        <Compile Include="Workflows\Standard\Assets\Common.fs" />
+        <Compile Include="Workflows\Standard\Assets\GLFT.fs" />
+        <Compile Include="Workflows\Standard\Components\Common.fs" />
+        <Compile Include="Impl.fs" />
         <Compile Include="Views\AssetStoreManager\Dialogs\NewComponentWindow.fs" />
         <Compile Include="Views\AssetStoreManager\Dialogs\NewAssetWindow.fs" />
         <Compile Include="Views\AssetStoreManager\ComponentManagerView.fs" />
@@ -55,4 +64,5 @@
       <ProjectReference Include="..\..\..\FsToolbox\FsToolbox.OpenGL\FsToolbox.OpenGL.fsproj" />
       <ProjectReference Include="..\Scenic.Core\Scenic.Core.fsproj" />
     </ItemGroup>
+    
 </Project>

@@ -1,12 +1,13 @@
-﻿namespace Scene.Core.Components
+﻿namespace Scenic.Core.Components
 
 open System
 open FsToolbox.GLTF
 open FsToolbox.GameDevelopment.Geometry.Types
 open FsToolbox.OpenGL.Materials
 open CommonResourceFormats.AssetStore.Core.Domain
-open Scene.Core
+open Scenic.Core
 
+(*
 type ModelComponent() =
     
     let mutable material: OpenGLMaterial option = None
@@ -21,11 +22,11 @@ type ModelComponent() =
         let modelComp = ModelComponent()
         
         let materialAsset =
-            comp.Assets |> Seq.tryFind (fun ca -> ca.Asset.AssetType.Equals("opengl:material", StringComparison.OrdinalIgnoreCase))
+            comp.Assets.Values |> Seq.tryFind (fun ca -> ca.Asset.AssetType.Equals("opengl:material", StringComparison.OrdinalIgnoreCase))
         
         let loadModelResult =
             match 
-                comp.Assets
+                comp.Assets.Values
                 |> Seq.tryFind (fun ca -> ca.Asset.AssetType.Equals("crf:model", StringComparison.OrdinalIgnoreCase))
             with
             | None -> Error ""
@@ -61,5 +62,5 @@ type ModelComponent() =
     member _.Serialize() =
         
         ""
-        
+*)        
         

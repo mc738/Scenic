@@ -21,6 +21,7 @@ open FsToolbox.OpenGL.Shaders
 open Scenic.Editor.Core
 open Scenic.Editor.Core.Domain
 open Scenic.Editor.Core.Input
+open Scenic.Editor.Rendering.Materials
 open Silk.NET.OpenGL
 open StbImageSharp
 open FSharp.NativeInterop
@@ -115,7 +116,7 @@ type Viewport3D(ctx: EditorContext, host: IViewportHost) as this =
     //let mutable voa: DebugPlane = Operators.Unchecked.defaultof<DebugPlane>
     //let mutable gridPlane: GridPlane = Operators.Unchecked.defaultof<GridPlane>
 
-    
+    let mutable materials = Unchecked.defaultof<ScenicEditorMaterials>
     
     let mutable scene: EditorSceneInstance option = Option.None
 
@@ -150,6 +151,7 @@ type Viewport3D(ctx: EditorContext, host: IViewportHost) as this =
         //gridPlane <- GridPlane(gl)
         
         initalized <- true
+        materials <- ScenicEditorMaterials.Create gl
         
         host.ViewportLoaded(gl)
 
@@ -238,3 +240,6 @@ type Viewport3D(ctx: EditorContext, host: IViewportHost) as this =
                 )
 
             host.OnScreenRaycast(ray, ScreenRaycastType.MouseClick MouseClickType.LeftButton)
+            
+    member this.GetMaterial(materialType: ScenicEditorMaterialType) =
+        materials.GetMaterialType(materialType)

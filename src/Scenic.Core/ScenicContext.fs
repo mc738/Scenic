@@ -1,4 +1,4 @@
-﻿namespace Scene.Core
+﻿namespace Scenic.Core
 
 open System.IO
 open CommonResourceFormats.AssetStore

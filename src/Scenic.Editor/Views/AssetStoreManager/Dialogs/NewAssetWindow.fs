@@ -6,22 +6,14 @@ open Avalonia.Layout
 open Avalonia.Media
 open Avalonia.Platform.Storage
 open CommonResourceFormats.AssetStore.Core.Domain
+open Scenic.Editor.Core.Workflows.Types
+open Scenic.Editor.Core.Dsl
 
-[<RequireQualifiedAccess>]
-type SupportedAssetType =
-    | Model
-
-    member sat.Serialize() =
-        match sat with
-        | Model -> "model"
-
-type NewAssetWindow() as this =
+type NewAssetWindow(workflows: AssetWorkflowsHandler) as this =
     inherit Window()
 
 
     let mutable path = ""
-
-    let mutable selectedAssetType = Operators.Unchecked.defaultof<SupportedAssetType>
 
     let nameBox = TextBox()
     
@@ -31,6 +23,8 @@ type NewAssetWindow() as this =
     
     let confirmButton = Button()
     let cancelButton = Button()
+    
+    let mutable workflowControl: NewAssetWorkflowControl option = None
 
     let assetTypeSpecificContent = StackPanel()
 
@@ -54,10 +48,12 @@ type NewAssetWindow() as this =
         let protoTypeLabel = Label(Content = "Is prototype", Target = isPrototypeBox)
         
         let assetTypeLabel = Label(Content = "Asset type", Target = assetTypeBox)
-
-        assetTypeBox.Items.Add(new ComboBoxItem(Content = "Model", DataContext = SupportedAssetType.Model))
-        |> ignore
         
+        
+        for listing in workflows.GetListings() do
+            assetTypeBox.Items.Add(new ComboBoxItem(Content = "Model", DataContext = listing.Key))
+            |> ignore
+            
         let assetPathLabel =  Label(Content = "Path", Target = assetTypeBox)
         
         let apLayout = StackPanel()
@@ -82,14 +78,15 @@ type NewAssetWindow() as this =
 
                 let cb = item :?> ComboBoxItem
 
-                let sat = cb.DataContext :?> SupportedAssetType
-                selectedAssetType <- sat
-
-                match sat with
-                | SupportedAssetType.Model ->
-                    assetTypeSpecificContent.Children.Clear()
-
-                ())
+                let sat = cb.DataContext :?> EntityKey
+                
+                match workflows.Factories.TryFind sat with
+                | None -> failwith "todo"
+                | Some value ->
+                    //  Clear the work flow specific stuff.
+                    let newControl = value.CreateNewAssetWorkflowControl()
+                    
+                    workflowControl <- Some newControl)
 
         confirmButton.Content <- "Create"
         cancelButton.Content <- "Cancel"
@@ -99,19 +96,23 @@ type NewAssetWindow() as this =
 
         confirmButton.Click.Add(fun e ->
             printfn "Ok!!"
+            
+            match workflowControl with
+            | None -> ()
+            | Some wfc ->
 
-            let asset =
-                ({ Id = EntityId.Create()
-                   VersionId = EntityId.Create()
-                   Name = nameBox.Text
-                   AssetType = selectedAssetType.Serialize()
-                   IsPrototype = isPrototypeBox.IsChecked |> Option.ofNullable |> Option.defaultValue false
-                   Metadata = EntityMetadata.Empty
-                   VersionMetadata = EntityMetadata.Empty
-                   Path = EntityPath.Absolute path }
-                : NewAsset)
+                let asset =
+                    ({ Id = EntityId.Create()
+                       VersionId = EntityId.Create()
+                       Name = nameBox.Text
+                       AssetType = wfc.GetAssetType()
+                       IsPrototype = isPrototypeBox.IsChecked |> Option.ofNullable |> Option.defaultValue false
+                       Metadata = EntityMetadata.Empty
+                       VersionMetadata = EntityMetadata.Empty
+                       Path = EntityPath.Absolute path }
+                    : NewAsset)
 
-            this.Close(Some asset))
+                this.Close(Some asset))
 
         cancelButton.Click.Add(fun e ->
             printfn "Cancel"

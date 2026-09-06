@@ -16,13 +16,15 @@ open FsToolbox.OpenGL
 open FsToolbox.OpenGL.Geometry
 open FsToolbox.OpenGL.Materials
 open FsToolbox.OpenGL.Types
-open Scene.Core.Workflows
-open Scene.Core.Workflows.Standard.V1
+open Scenic.Core.Workflows
+open Scenic.Core.Workflows.Standard.V1
 open Scenic.Component
 open Scenic.Editor.Components.Debugging
 open Scenic.Editor.Core
 open Scenic.Editor.Core.Domain
 open Scenic.Editor.Core.Input
+open Scenic.Editor.Rendering
+open Scenic.Editor.Rendering.Materials
 open Silk.NET.OpenGL
 open Avalonia.Interactivity
 open FsToolbox.GameDevelopment.Core.Types
@@ -125,34 +127,6 @@ module RenderImportWorkflows =
             Error "No renderer import workflow found"
 *)
 
-type SceneObjectId = EntityId
-
-type RenderBatch =
-    { Material: OpenGLMaterial
-      Items: Dictionary<SceneObjectId, RenderBatchItem> }
-
-and RenderBatchItem(objectId: SceneObjectId, mesh: ElementMesh) =
-
-    let mutable distanceToCamera = 0f
-
-    member _.ObjectId = objectId
-
-    member _.Mesh = mesh
-
-    member _.DistanceToCamera = distanceToCamera
-
-    member _.SetDistanceToCamera(newDistance) = distanceToCamera <- newDistance
-
-type MaterialId = EntityId
-
-type RenderBatches =
-    { Opaque: Dictionary<MaterialId, RenderBatch>
-      Transparent: Dictionary<MaterialId, RenderBatch> }
-
-    static member Empty =
-        { Opaque = Dictionary<MaterialId, RenderBatch>()
-          Transparent = Dictionary<MaterialId, RenderBatch>() }
-
 type SceneEditorView(ctx: EditorContext, parentWindow: Window, scene: Scene) as this =
     inherit DockPanel()
     
@@ -160,7 +134,6 @@ type SceneEditorView(ctx: EditorContext, parentWindow: Window, scene: Scene) as 
     // This is for easy access and so they can be resolved via an entity id easily.
     let transformMap = Dictionary<SceneObjectId, Transform>()
     
-
     let renderBatches = RenderBatches.Empty
 
     // An internal collection used to decide what will be rendered.
@@ -366,39 +339,33 @@ type SceneEditorView(ctx: EditorContext, parentWindow: Window, scene: Scene) as 
             let vpCam = viewport.Camera
             
             // Sort the batches.
-            for b in renderBatches.Opaque.Values do
-                for i in b.Items do
+            for bi in renderBatches.StandardOpaque do
                     
-                    let transform = transformMap[i.Key]
-                    
-                    let distanceToCamera =
-                        Vector3.Dot(transform.Position - vpCam.Position, vpCam.Forward)
-                    
-                    i.Value.SetDistanceToCamera(distanceToCamera)
-                    
-                b.Material.Use()
+                let transform = transformMap[bi.ObjectId]
                 
-                for i in b.Items |> Seq.sortBy _.Value.DistanceToCamera do
-                    i.Value.Mesh.Bind()
-                    
-                    render.DrawElements(PrimitiveType.Triangles, DrawElementsType.UnsignedInt, i.Value.Mesh.IndicesCount)
-                    
+                let distanceToCamera =
+                    Vector3.Dot(transform.Position - vpCam.Position, vpCam.Forward)
+                
+                bi.SetModelMatrix(transform.ViewMatrix)
+                bi.SetDistanceToCamera(distanceToCamera)
             
-            for b in renderBatches.Transparent.Values do
-                for i in b.Items do
-                    
-                    let transform = transformMap[i.Key]
-                    
-                    let distanceToCamera =
-                        Vector3.Dot(transform.Position - vpCam.Position, vpCam.Forward)
-                    
-                    i.Value.SetDistanceToCamera(distanceToCamera)
-                 
+            let material = viewport.GetMaterial(ScenicEditorMaterialType.Unlit)
+            
+            material.BindViewProjection(view, projection)
+                
+            for bi in renderBatches.StandardOpaque |> Seq.sortBy _.DistanceToCamera do
+                bi.Mesh.Bind()
+                
+                
+                material.BindModel(bi.ModelMatrix)
+                
+                
+                render.DrawElements(PrimitiveType.Triangles, DrawElementsType.UnsignedInt, bi.Mesh.IndicesCount)
+                
+            
+            // TODO handle transparent.
+             
             editorGrid.Draw(view, projection, viewport.CameraPosition)
-
-
-        //debugPlane.Bind(view, projection)
-        //render.DrawElements(PrimitiveType.Triangles, DrawElementsType.UnsignedInt, 6u)
 
         member this.ViewportLoaded(gl) =
             debugPlane <- DebugPlane(gl)
@@ -474,23 +441,13 @@ type SceneEditorView(ctx: EditorContext, parentWindow: Window, scene: Scene) as 
                 | true, so ->
                     [ for mesh in newModel.Meshes do
                           for primitive in mesh.Primitives do
+                              // TODO clean up
                               let em = ElementMesh(primitive.Layout)
                               em.Build(viewportGL, primitive.Vertices, primitive.Indices)
-                              let m = EntityId.Create()
-
-                              match renderBatches.Opaque.TryGetValue m with
-                              | false, _ ->
-                                  renderBatches.Opaque.Add(
-                                      m,
-                                      ({ Material = failwith ""
-                                         Items = failwith "todo" }
-                                      : RenderBatch)
-                                  )
-                              | true, rb ->
-                                  rb.Items.Add("", em)
-
-
-                              { Mesh = em; MaterialId = "" } ]
+                              
+                              renderBatches.StandardOpaque.Add(RenderBatchItem(e.SceneObjectId, em))
+                              
+                              yield { Mesh = em; MaterialId = ScenicEditorUnlitMaterial.EntityId } ]
                     |> so.Primitives.AddRange
 
     member this.AddSceneObject(parent: TreeViewItem option) =

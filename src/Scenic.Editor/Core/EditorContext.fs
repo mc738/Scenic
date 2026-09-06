@@ -3,9 +3,11 @@
 open CommonResourceFormats.AssetStore
 open Microsoft.Extensions.DependencyInjection
 open Microsoft.Extensions.Logging
-open Scene.Core
+open Scenic.Core
+open Scenic.Editor.Core.Workflows.Types
 
 type EditorContext =
     { ServiceProvider: ServiceProvider
       LoggerFactory: ILoggerFactory
-      ScenicContext: ScenicContext }
+      ScenicContext: ScenicContext
+      WorkflowHandlers: WorkflowHandlers }
