@@ -20,6 +20,7 @@ open FsToolbox.OpenGL.Types
 open Scenic.Core.Workflows
 open Scenic.Core.Workflows.Standard.V1
 open Scenic.Component
+open Scenic.Core.Workflows.Standard.V1.ComponentWorkFlows
 open Scenic.Editor.Components.Debugging
 open Scenic.Editor.Core
 open Scenic.Editor.Core.Domain
@@ -29,22 +30,23 @@ open Scenic.Editor.Rendering.Materials
 open Silk.NET.OpenGL
 open Avalonia.Interactivity
 open FsToolbox.GameDevelopment.Core.Types
+open Scenic.Core.Workflows.Standard
 
 
 type SceneEditorView(ctx: EditorContext, parentWindow: Window, scene: Scene) as this =
     inherit DockPanel()
-    
+
     // The transforms for all scene objects, stored in a map.
     // This is for easy access and so they can be resolved via an entity id easily.
     let transformMap = Dictionary<SceneObjectId, Transform>()
-    
+
     let renderBatches = RenderBatches.Empty
 
     // An internal collection used to decide what will be rendered.
     // The data in this doesn't need to be saved.
     let objectInstances = Dictionary<EntityId, EditorSceneObjectInstance>()
 
-    
+
     let primitivesToBuild = Queue<EntityId * Primitive>()
 
     let mutable viewportGL = Operators.Unchecked.defaultof<GL>
@@ -160,15 +162,15 @@ type SceneEditorView(ctx: EditorContext, parentWindow: Window, scene: Scene) as 
                 printfn $"Object selected: {id}"
 
                 objectPanel.SetObject(objects[id])
-                
+
                 ())
 
         this.BuildTransformMap()
         this.BuildTreeView()
+        this.GetRenderableItems()
 
     interface IViewportHost with
-        member this.RequestScene() =
-            None
+        member this.RequestScene() = None
 
         member this.OnScreenRaycast(ray, t) =
             (*
@@ -220,16 +222,16 @@ type SceneEditorView(ctx: EditorContext, parentWindow: Window, scene: Scene) as 
             // If these are build else where then they will have no affect.
             while primitivesToBuild.Count > 0 do
                 let (sceneObjectId, primitive) = primitivesToBuild.Dequeue()
-                
+
                 let em = ElementMesh(primitive.Layout)
                 em.Build(gl, primitive.Vertices, primitive.Indices)
-                              
+
                 renderBatches.StandardOpaque.Add(RenderBatchItem(sceneObjectId, em))
-                    
+
             gl.Enable(EnableCap.Blend)
             gl.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha)
-            
-            
+
+
             gl.Enable(EnableCap.DepthTest)
             gl.DepthFunc(DepthFunction.Less)
             gl.DepthMask(true)
@@ -246,41 +248,41 @@ type SceneEditorView(ctx: EditorContext, parentWindow: Window, scene: Scene) as 
             //
 
             let vpCam = viewport.Camera
-            
+
             // Sort the batches.
             for bi in renderBatches.StandardOpaque do
-                    
+
                 let mutable transform = Transform.Default // transformMap[bi.ObjectId]
-                
+
                 transform.Position <- Vector3(0f, 0f, -10f)
-                
+
                 let distanceToCamera =
                     Vector3.Dot(transform.Position - vpCam.Position, vpCam.Forward)
-                
+
                 bi.SetModelMatrix(transform.ViewMatrix)
                 bi.SetDistanceToCamera(distanceToCamera)
-            
+
             let material = viewport.GetMaterial(ScenicEditorMaterialType.Unlit)
-            
+
             material.Use()
-            
+
             material.BindViewProjection(view, projection)
-                
+
             for bi in renderBatches.StandardOpaque |> Seq.sortBy _.DistanceToCamera do
-                 
+
                 material.BindModel(Transform.Default.ViewMatrix)
-                
+
                 bi.Mesh.Bind()
-               
+
                 render.DrawElements(PrimitiveType.Triangles, DrawElementsType.UnsignedInt, bi.Mesh.IndicesCount)
-                
-            
+
+
             // TODO handle transparent.
-             
+
             debugPlane.Bind(view, projection)
             render.DrawElements(PrimitiveType.Triangles, DrawElementsType.UnsignedInt, 6u)
-            
-            //editorGrid.Draw(view, projection, viewport.CameraPosition)
+
+        //editorGrid.Draw(view, projection, viewport.CameraPosition)
 
         member this.ViewportLoaded(gl) =
             debugPlane <- DebugPlane(gl)
@@ -292,10 +294,37 @@ type SceneEditorView(ctx: EditorContext, parentWindow: Window, scene: Scene) as 
         let rec build (sceneObject: SceneObject) =
             transformMap.Add(sceneObject.Id, sceneObject.Transform)
             sceneObject.Children |> Seq.iter build
-            
+
         for object in scene.Objects do
             build object
-    
+
+
+    member this.GetRenderableItems() =
+        let rec build (sceneObject: SceneObject) =
+            ()
+
+            sceneObject.Components
+            |> Seq.iter (fun soc ->
+                
+                match soc.Component.ComponentType.Serialize().Equals(V1.Keys.Components.``model-type``.Serialize()) with
+                | false -> ()
+                | true ->
+                    match  ComponentWorkflows.tryLoadModel soc.Component with
+                    | Error e -> failwith $"Failed to build model: {e}"
+                    | Ok model ->
+                        for mesh in model.Meshes do
+                        for primitive in mesh.Primitives do
+                            // TODO make a bit more "proper".
+                            primitivesToBuild.Enqueue(sceneObject.Id, primitive)
+                )
+            
+            
+            
+            sceneObject.Children |> Seq.iter build
+
+        for object in scene.Objects do
+            build object
+
     member this.BuildTreeView() =
 
         let rec build (parent: TreeViewItem) (object: SceneObject) =
@@ -352,10 +381,10 @@ type SceneEditorView(ctx: EditorContext, parentWindow: Window, scene: Scene) as 
                 failwith "todo"
             | Ok newModel ->
                 for mesh in newModel.Meshes do
-                      for primitive in mesh.Primitives do
-                          // TODO make a bit more "proper".
-                          primitivesToBuild.Enqueue(e.SceneObjectId, primitive)
-                             
+                    for primitive in mesh.Primitives do
+                        // TODO make a bit more "proper".
+                        primitivesToBuild.Enqueue(e.SceneObjectId, primitive)
+
     member this.AddSceneObject(parent: TreeViewItem option) =
         let eId = EntityId.Create()
         let name = "New object"
@@ -394,7 +423,7 @@ type SceneEditorView(ctx: EditorContext, parentWindow: Window, scene: Scene) as 
                            Transform = Transform.Default }
                         : SceneObject)
                 )
-                
+
                 transformMap.Add(eId, Transform.Default)
 
         | Some(value: TreeViewItem) ->
@@ -432,9 +461,9 @@ type SceneEditorView(ctx: EditorContext, parentWindow: Window, scene: Scene) as 
                            Transform = Transform.Default }
                         : SceneObject)
                 )
-                
+
                 transformMap.Add(eId, Transform.Default)
-                
+
     member this.FocusNow() =
         // Ensure focus happens after layout
         Dispatcher.UIThread.Post(fun () -> this.Focus() |> ignore)
