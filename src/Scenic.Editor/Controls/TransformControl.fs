@@ -8,6 +8,8 @@ open FsToolbox.GameDevelopment.Core
 type TransformControl() as this =
     inherit StackPanel()
 
+    let transformUpdated = Event<Transform>()
+    
     let mutable transform = Transform.Default
 
     let posX = NumericUpDown()
@@ -135,24 +137,32 @@ type TransformControl() as this =
         this.Children.Add(scaLabel)
         this.Children.Add(scaSP)
 
+        
         posX.ValueChanged.Add(fun e ->
             match objet with
             | None -> ()
             | Some obj ->
-                transform.Position.X <- e.NewValue |> Option.ofNullable |> Option.map float32 |> Option.defaultValue 0f)
+                transform.Position.X <- e.NewValue |> Option.ofNullable |> Option.map float32 |> Option.defaultValue 0f
+                this.TriggerUpdate())
+                
 
         posY.ValueChanged.Add(fun e ->
             match objet with
             | None -> ()
             | Some obj ->
-                transform.Position.Y <- e.NewValue |> Option.ofNullable |> Option.map float32 |> Option.defaultValue 0f)
+                transform.Position.Y <- e.NewValue |> Option.ofNullable |> Option.map float32 |> Option.defaultValue 0f
+                this.TriggerUpdate())
 
         posZ.ValueChanged.Add(fun e ->
             match objet with
             | None -> ()
             | Some obj ->
-                transform.Position.Z <- e.NewValue |> Option.ofNullable |> Option.map float32 |> Option.defaultValue 0f)
+                transform.Position.Z <- e.NewValue |> Option.ofNullable |> Option.map float32 |> Option.defaultValue 0f
+                this.TriggerUpdate())
 
+    [<CLIEvent>]
+    member _.TransformUpdated = transformUpdated.Publish
+    
     member _.SetObject(obj: SceneObject) =
         objet <- Some obj
         transform <- obj.Transform
@@ -174,3 +184,7 @@ type TransformControl() as this =
         scaZ.Value <- transform.Scale.Z |> decimal
 
     member _.GetTransform() = transform
+    
+    member _.TriggerUpdate() =
+        transformUpdated.Trigger(transform)
+        

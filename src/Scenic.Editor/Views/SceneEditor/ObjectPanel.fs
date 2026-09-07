@@ -13,17 +13,26 @@ open Scenic.Editor.Core.Dsl
 
 type ComponentAddedEventArgs(sceneObjectId: EntityId, componentVersionId: EntityId) =
     inherit EventArgs()
-    
+
     member _.SceneObjectId = sceneObjectId
-    
+
     member _.ComponentVersionId = componentVersionId
+
+type TransformUpdatedEventArgs(sceneObjectId: EntityId, newTransform: FsToolbox.GameDevelopment.Core.Types.Transform) =
+    inherit EventArgs()
+
+    member _.SceneObjectId = sceneObjectId
+
+    member _.NewTransform = newTransform
 
 
 type ObjectPanel(ctx: EditorContext, parentWindow: Window) as this =
     inherit StackPanel()
 
     let componentAdded = Event<ComponentAddedEventArgs>()
-    
+
+    let transformUpdated = Event<TransformUpdatedEventArgs>()
+
     let mutable sceneObject = Operators.Unchecked.defaultof<SceneObject>
 
     let title = TextBlock(FontWeight = FontWeight.Bold)
@@ -40,14 +49,22 @@ type ObjectPanel(ctx: EditorContext, parentWindow: Window) as this =
                   |> MenuItem.withCommand this.AddSceneObjectComponent ]
         )
 
-    do this |> setChildren [ title; transformControl; componentsListBox ]
+    do
+        transformControl.TransformUpdated.Add this.UpdateTransform
+
+        this |> setChildren [ title; transformControl; componentsListBox ]
 
     [<CLIEvent>]
     member this.ComponentAdded = componentAdded.Publish
-    
+
+
+    [<CLIEvent>]
+    member this.TansformUpdated = transformUpdated.Publish
+
     member _.SetObject(newSceneObject: SceneObject) =
         sceneObject <- newSceneObject
 
+        transformControl.SetObject(sceneObject)
         transformControl.SetValue(sceneObject.Transform)
 
         title.Text <- newSceneObject.Name
@@ -63,6 +80,12 @@ type ObjectPanel(ctx: EditorContext, parentWindow: Window) as this =
     member _.SaveObject() =
         ctx.ScenicContext.AssetStore.UpdateSceneObjectTransform(sceneObject.Id, transformControl.GetTransform())
 
+
+    member _.UpdateTransform(transform: FsToolbox.GameDevelopment.Core.Types.Transform) =
+        let newTransform = transformControl.GetTransform()
+
+        transformUpdated.Trigger(TransformUpdatedEventArgs(sceneObject.Id, newTransform))
+
     member _.AddSceneObjectComponent() =
         async {
 
@@ -77,13 +100,13 @@ type ObjectPanel(ctx: EditorContext, parentWindow: Window) as this =
                 ctx.ScenicContext.AssetStore.AddSceneObjectComponent(sceneObject.Id, componentVersionId, None)
                 sceneObject.Components.Clear()
                 sceneObject.Components.AddRange(ctx.ScenicContext.AssetStore.GetSceneObjectComponents(sceneObject.Id))
-                
+
                 componentsListBox.Items.Clear()
-                
+
                 for comp in sceneObject.Components do
                     componentsListBox.Items.Add(ListBoxItem(Content = comp.Component.Name))
                     |> ignore
-                    
+
                 componentAdded.Trigger(ComponentAddedEventArgs(sceneObject.Id, componentVersionId))
         }
         |> Async.StartImmediate

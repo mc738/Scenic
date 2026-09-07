@@ -70,6 +70,7 @@ type SceneEditorView(ctx: EditorContext, parentWindow: Window, scene: Scene) as 
 
     do
         objectPanel.ComponentAdded.Add(this.OnComponentAdded)
+        objectPanel.TansformUpdated.Add(this.OnTransformUpdated)
 
         let rec traverse (sceneObject: SceneObject) =
             objects.Add(
@@ -252,9 +253,9 @@ type SceneEditorView(ctx: EditorContext, parentWindow: Window, scene: Scene) as 
             // Sort the batches.
             for bi in renderBatches.StandardOpaque do
 
-                let mutable transform = Transform.Default // transformMap[bi.ObjectId]
+                let mutable transform = transformMap[bi.ObjectId]
 
-                transform.Position <- Vector3(0f, 0f, -10f)
+                //transform.Position <- Vector3(0f, 0f, -10f)
 
                 let distanceToCamera =
                     Vector3.Dot(transform.Position - vpCam.Position, vpCam.Forward)
@@ -270,7 +271,7 @@ type SceneEditorView(ctx: EditorContext, parentWindow: Window, scene: Scene) as 
 
             for bi in renderBatches.StandardOpaque |> Seq.sortBy _.DistanceToCamera do
 
-                material.BindModel(Transform.Default.ViewMatrix)
+                material.BindModel(bi.ModelMatrix)
 
                 bi.Mesh.Bind()
 
@@ -305,21 +306,24 @@ type SceneEditorView(ctx: EditorContext, parentWindow: Window, scene: Scene) as 
 
             sceneObject.Components
             |> Seq.iter (fun soc ->
-                
-                match soc.Component.ComponentType.Serialize().Equals(V1.Keys.Components.``model-type``.Serialize()) with
+
+                match
+                    soc.Component.ComponentType
+                        .Serialize()
+                        .Equals(V1.Keys.Components.``model-type``.Serialize())
+                with
                 | false -> ()
                 | true ->
-                    match  ComponentWorkflows.tryLoadModel soc.Component with
+                    match ComponentWorkflows.tryLoadModel soc.Component with
                     | Error e -> failwith $"Failed to build model: {e}"
                     | Ok model ->
                         for mesh in model.Meshes do
-                        for primitive in mesh.Primitives do
-                            // TODO make a bit more "proper".
-                            primitivesToBuild.Enqueue(sceneObject.Id, primitive)
-                )
-            
-            
-            
+                            for primitive in mesh.Primitives do
+                                // TODO make a bit more "proper".
+                                primitivesToBuild.Enqueue(sceneObject.Id, primitive))
+
+
+
             sceneObject.Children |> Seq.iter build
 
         for object in scene.Objects do
@@ -384,6 +388,13 @@ type SceneEditorView(ctx: EditorContext, parentWindow: Window, scene: Scene) as 
                     for primitive in mesh.Primitives do
                         // TODO make a bit more "proper".
                         primitivesToBuild.Enqueue(e.SceneObjectId, primitive)
+
+    member this.OnTransformUpdated(e: TransformUpdatedEventArgs) =
+        match transformMap.TryGetValue e.SceneObjectId with
+        | false, transform -> failwith "todo"
+        | true, transform ->
+            transformMap[e.SceneObjectId] <- e.NewTransform
+            ctx.ScenicContext.AssetStore.UpdateSceneObjectTransform(e.SceneObjectId, e.NewTransform)
 
     member this.AddSceneObject(parent: TreeViewItem option) =
         let eId = EntityId.Create()
