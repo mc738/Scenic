@@ -26,7 +26,7 @@
         <Compile Include="Workflows\Standard\Assets\GLFT.fs" />
         <Compile Include="Workflows\Standard\Components\Common.fs" />
         <Compile Include="Workflows\Standard\Components\Models.fs" />
-        <Compile Include="Impl.fs" />
+        <Compile Include="Workflows\Impl.fs" />
         <Compile Include="Views\AssetStoreManager\Dialogs\NewComponentWindow.fs" />
         <Compile Include="Views\AssetStoreManager\Dialogs\NewAssetWindow.fs" />
         <Compile Include="Views\AssetStoreManager\ComponentManagerView.fs" />
@@ -39,6 +39,7 @@
         <Compile Include="Windows\NewSceneWindow.fs" />
         <Compile Include="Windows\LoadSceneWindow.fs" />
         <Compile Include="Windows\AssetStoreManagerWindow.fs" />
+        <Compile Include="Extensions\TurnBasedTactics\Views\LevelEditor\TBTLevelEditorView.fs" />
         <Compile Include="MainWindow.axaml.fs"/>
         <Compile Include="App.axaml.fs"/>
         <Compile Include="Program.fs"/>
@@ -66,6 +67,9 @@
       <ProjectReference Include="..\..\..\FsToolbox\FsToolbox.GameDevelopment\FsToolbox.GameDevelopment.fsproj" />
       <ProjectReference Include="..\..\..\FsToolbox\FsToolbox.OpenGL\FsToolbox.OpenGL.fsproj" />
       <ProjectReference Include="..\Scenic.Core\Scenic.Core.fsproj" />
+    </ItemGroup>
+
+    <ItemGroup>
     </ItemGroup>
     
 </Project>

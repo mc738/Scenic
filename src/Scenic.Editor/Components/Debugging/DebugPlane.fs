@@ -29,6 +29,7 @@ type DebugPlane(gl: GL) =
            -1000f
            -0.01f
            1000f |]
+        |> Array.collect BitConverter.GetBytes
 
     let indices = [| 0u; 1u; 2u; 2u; 3u; 0u |]
 

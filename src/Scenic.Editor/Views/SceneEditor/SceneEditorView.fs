@@ -62,7 +62,7 @@ type SceneEditorView(ctx: EditorContext, parentWindow: Window, scene: Scene) as 
     let mutable editorGrid = Operators.Unchecked.defaultof<EditorGrid>
 
     //let mutable cm = Operators.Unchecked.defaultof<ContentManager>
-    let mutable render = Operators.Unchecked.defaultof<Render>
+    let mutable render = Operators.Unchecked.defaultof<OpenGLRenderer>
 
     let objects = Dictionary<Guid, SceneObject>()
 
@@ -287,7 +287,7 @@ type SceneEditorView(ctx: EditorContext, parentWindow: Window, scene: Scene) as 
 
         member this.ViewportLoaded(gl) =
             debugPlane <- DebugPlane(gl)
-            render <- Render(gl)
+            render <- OpenGLRenderer(gl)
             editorGrid <- EditorGrid(gl)
             viewportGL <- gl
 

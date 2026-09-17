@@ -223,6 +223,8 @@ type Viewport3D(ctx: EditorContext, host: IViewportHost) as this =
             | None -> ()
 
             lastPos <- Some pos
+        else
+            lastPos <- Some <| e.GetPosition(this)
 
     member this.ForwardPointerPressed(e: PointerEventArgs) =
         if e.Properties.IsLeftButtonPressed then
