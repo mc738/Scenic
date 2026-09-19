@@ -22,7 +22,7 @@ type App() =
             ServiceCollection()
                 .AddLogging(fun builder -> builder.SetMinimumLevel(LogLevel.Trace).AddConsole() |> ignore)
                 .AddSingleton<ScenicContext>(fun builder ->
-                    ScenicContext.Initialize(@"C:\Users\mclif\Projects\data\Scenic\Dev"))
+                    ScenicContext.Initialize("/home/maxc/Projects/Data/Scenic/Dev/"))
                 .BuildServiceProvider()
 
         let ctx =
