@@ -21,7 +21,7 @@ type AnimationClip =
 
 type Armature = { RootBone: Bone }
 
-and Bone = { Name: string; Children: Bone list }
+and Bone = { Name: string; InverseBindMatrix: Matrix4x4; Children: Bone list }
 
 
 
@@ -34,6 +34,7 @@ let buildArmature (vl: ModelRoot) =
 
     [ for skin in vl.LogicalSkins do
           let joints = skin.Joints
+          
 
           let root =
               joints
@@ -42,10 +43,15 @@ let buildArmature (vl: ModelRoot) =
                       joints |> Seq.exists (fun other -> other.VisualChildren |> Seq.contains j)
 
                   hasParent |> not)
+              
+          let i = skin.InverseBindMatrices
 
           let rec build (node: Node) =
+              
+              let iv = i.[node.LogicalIndex]
 
               { Name = node.Name
+                InverseBindMatrix = iv
                 Children = node.VisualChildren |> Seq.map build |> List.ofSeq }
 
           { RootBone = build root } ]
@@ -140,6 +146,10 @@ let m = GLTFLoader.loadModel "/home/maxc/Projects/blender/low_poly_male_rigged.g
 let s = buildArmature vl
 
 let anims = buildAnimations vl
+
+let i = anims.[1].Channels |> List.sortBy (fun l -> l.NodeId)
+
+
 
 // For more information see https://aka.ms/fsharp-console-apps
 printfn "Hello from F#"

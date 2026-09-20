@@ -15,7 +15,7 @@ uniform mat4 uModel;
 const int MAX_BONES = 100;
 const int MAX_BONE_INFLUENCE = 4;
 
-//uniform mat4 uFinalBonesMatrices[MAX_BONES];
+uniform mat4 uFinalBonesMatrices[MAX_BONES];
 	
 out vec2 TexCoords;
 // Optional: If you need to pass the transformed normal to the fragment shader
@@ -23,7 +23,7 @@ out vec2 TexCoords;
 	
 void main()
 {
-    /*
+    
     vec4 totalPosition = vec4(0.0);
     // Optional: vec3 totalNormal = vec3(0.0);
 
@@ -46,12 +46,16 @@ void main()
         // vec3 localNormal = mat3(uFinalBonesMatrices[aBoneIds[i]]) * aNormal;
         // totalNormal += localNormal * aWeights[i];
     }
+
+    if (totalPosition.w == 0.0 || (aWeights.x + aWeights.y + aWeights.z + aWeights.w) == 0.0) {
+        totalPosition = vec4(aPosition, 1.0);
+    }
 		
     mat4 viewModel = uView * uModel;
     gl_Position = uProjection * viewModel * totalPosition;
-    */
+    
 
-    gl_Position =  uProjection * uView * uModel * vec4(aPosition, 1.0);
+    //gl_Position =  uProjection * uView * uModel * vec4(aPosition, 1.0);
 
     // Fixed: changed 'tex' to 'aUV'
     TexCoords = aUV; 

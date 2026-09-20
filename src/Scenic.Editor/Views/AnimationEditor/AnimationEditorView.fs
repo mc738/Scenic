@@ -1,5 +1,6 @@
 namespace Scenic.Editor.Views.AnimationEditor
 
+open System.Numerics
 open Avalonia.Controls
 open Avalonia.Layout
 open Avalonia.Media
@@ -29,6 +30,11 @@ type AnimationEditorView(ctx: EditorContext) as this =
     let viewport = Viewport3D(ctx, this)
     
     let model = GLTFLoader.loadModel "/home/maxc/Projects/blender/low_poly_male_rigged.gltf"
+    
+    let root = GLTFLoader.loadRoot "/home/maxc/Projects/blender/low_poly_male_rigged.gltf"
+    
+    let armature = Domain.Operations.loadArmature root |> List.head
+    let animation = (Domain.Operations.loadAnimations root).[1]
    
     let mutable render = Operators.Unchecked.defaultof<OpenGLRenderer>
     let mutable debugPlane = Operators.Unchecked.defaultof<DebugPlane>
@@ -39,9 +45,10 @@ type AnimationEditorView(ctx: EditorContext) as this =
     
     let renderable = ResizeArray<ElementMesh>()
     
+    let mutable totalTime = 0f
+    
     
     do
-        printfn "G"
         this.HorizontalAlignment <- HorizontalAlignment.Stretch
         this.VerticalAlignment <- VerticalAlignment.Stretch
         viewport.Height <- this.Bounds.Height
@@ -76,6 +83,7 @@ type AnimationEditorView(ctx: EditorContext) as this =
     
         member this.OnScreenRaycast(ray, rayType) = ()
         member this.RenderScene(gl, dt,  view, projection) =
+            totalTime <- totalTime + dt
             gl.Enable(EnableCap.Blend)
             gl.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha)
 
@@ -96,10 +104,17 @@ type AnimationEditorView(ctx: EditorContext) as this =
                 
                 renderable.Bind()
 
-                render.DrawElements(PrimitiveType.Triangles, DrawElementsType.UnsignedInt, renderable.IndicesCount)
+                let time = totalTime % animation.Duration
                 
-            
-            
+                let anim = Domain.Operations.generateShaderPalette armature animation.Channels time armature.Joints
+                
+                
+                for i, m in anim |> Array.indexed do
+                    shader.SetUniform($"uFinalBonesMatrices[{i}]", m, true)
+                    
+                    ()
+                
+                render.DrawElements(PrimitiveType.Triangles, DrawElementsType.UnsignedInt, renderable.IndicesCount)
             
             // Draw debug plane
             debugPlane.Bind(view, projection)
@@ -108,7 +123,6 @@ type AnimationEditorView(ctx: EditorContext) as this =
             ()
         member this.RequestScene() = None
         member this.ViewportLoaded(gl) =
-            printfn "HERE 1!"
             // Upload the model.
             debugPlane <- DebugPlane(gl)
 
@@ -116,7 +130,7 @@ type AnimationEditorView(ctx: EditorContext) as this =
             
             render <- OpenGLRenderer(gl)
             material <- AnimationMaterial(shader)
-            
+            viewport.Camera.SetPosition(Vector3(0f, 1f, 5f))
             
             for mesh in model.Meshes do
                 for primitive in mesh.Primitives do
