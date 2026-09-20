@@ -110,7 +110,7 @@ type AnimationEditorView(ctx: EditorContext) as this =
                 
                 
                 for i, m in anim |> Array.indexed do
-                    shader.SetUniform($"uFinalBonesMatrices[{i}]", m, true)
+                    shader.SetUniform($"uFinalBonesMatrices[{i}]", m)
                     
                     ()
                 
