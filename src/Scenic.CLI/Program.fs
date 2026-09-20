@@ -26,7 +26,7 @@ and Bone = { Name: string; Children: Bone list }
 
 
 let vl =
-    GLTFLoader.loadRoot @"C:\Users\mclif\Projects\Games\neon_elysium\assets\neon_elysium.gltf"
+    GLTFLoader.loadRoot "/home/maxc/Projects/blender/low_poly_male_rigged.gltf"
 
 //let rootNode =
 
@@ -135,7 +135,7 @@ for animation in vl.LogicalAnimations do
         ()
 *)
 
-let m = GLTFLoader.loadModel @"C:\Users\mclif\Projects\Games\neon_elysium\assets\neon_elysium.gltf"
+let m = GLTFLoader.loadModel "/home/maxc/Projects/blender/low_poly_male_rigged.gltf"
 
 let s = buildArmature vl
 

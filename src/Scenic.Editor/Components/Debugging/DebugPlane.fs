@@ -45,8 +45,8 @@ type DebugPlane(gl: GL) =
     let shader =
         OpenGLShader.CreateFromFile(
             gl,
-            @"C:\Users\mclif\Projects\dotnet\Scenic\src\Shaders\debug_plane.vert",
-            @"C:\Users\mclif\Projects\dotnet\Scenic\src\Shaders\debug_plane.frag"
+            "/home/maxc/Projects/dotnet/Scenic/src/Shaders/debug_plane.vert",
+            "/home/maxc/Projects/dotnet/Scenic/src/Shaders/debug_plane.frag"
         )
 
     do

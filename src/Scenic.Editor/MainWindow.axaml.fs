@@ -9,6 +9,7 @@ open CommonResourceFormats.AssetStore.Core.Domain
 open Scenic.Editor.Core
 open Scenic.Editor.Extensions.TurnBasedTactics.Views.LevelEditor
 open Scenic.Editor.Views
+open Scenic.Editor.Views.AnimationEditor
 open Scenic.Editor.Views.SceneEditor
 open Scenic.Editor.Windows
 
@@ -139,6 +140,28 @@ type MainWindow(ctx: EditorContext) as this =
         g.HorizontalAlignment <- HorizontalAlignment.Stretch
 
         g.Children.Add(TBTLevelEditorView(ctx, this))
+
+        newTab.Content <- g
+
+        tc.Items.Add(newTab) |> ignore
+        
+    member _.OpenAnimationEditor(sender: obj, e: RoutedEventArgs) =
+        let tc =
+            match tabControl with
+            | Some tc -> tc
+            | None ->
+                let tc = this.FindControl<TabControl>("MainTabControl")
+                tabControl <- Some tc
+                tc
+        
+        let newTab = TabItem(Header = "Animations")
+
+        let g = Grid()
+
+        g.VerticalAlignment <- VerticalAlignment.Stretch
+        g.HorizontalAlignment <- HorizontalAlignment.Stretch
+
+        g.Children.Add(AnimationEditorView(ctx))
 
         newTab.Content <- g
 

@@ -217,7 +217,7 @@ type SceneEditorView(ctx: EditorContext, parentWindow: Window, scene: Scene) as 
             *)
             ()
 
-        member this.RenderScene(gl, view, projection) =
+        member this.RenderScene(gl, dt, view, projection) =
 
             // OpenGL in avalonia only guarantees the gl context will be active in the rendering loop.
             // If these are build else where then they will have no affect.

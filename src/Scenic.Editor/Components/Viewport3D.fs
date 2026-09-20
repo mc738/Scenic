@@ -1,6 +1,7 @@
 ﻿namespace Scenic.Component
 
 open System
+open System.Diagnostics
 open System.Drawing
 open System.IO
 open System.Numerics
@@ -98,10 +99,10 @@ type IViewportHost =
     abstract member RequestScene: unit -> EditorSceneInstance option
     abstract member OnScreenRaycast: Ray * ScreenRaycastType -> unit
     abstract member ViewportLoaded: GL -> unit
-    abstract member RenderScene: Context: GL * View: Matrix4x4 * Projection: Matrix4x4 -> unit
+    abstract member RenderScene: Context: GL * DeltaTime: float32 * View: Matrix4x4 * Projection: Matrix4x4 -> unit
 
 type Viewport3D(ctx: EditorContext, host: IViewportHost) as this =
-
+    
     inherit OpenGlControlBase()
     let mutable gl = Operators.Unchecked.defaultof<GL>
     let mutable initalized = false
@@ -118,6 +119,10 @@ type Viewport3D(ctx: EditorContext, host: IViewportHost) as this =
 
     let mutable materials = Unchecked.defaultof<ScenicEditorMaterials>
     
+    
+    let stopwatch = Stopwatch()
+    let mutable lastFrameTime = TimeSpan()
+    
     let mutable scene: EditorSceneInstance option = Option.None
 
     do
@@ -132,7 +137,6 @@ type Viewport3D(ctx: EditorContext, host: IViewportHost) as this =
     member _.Camera = camera
     
     override this.OnOpenGlInit(gli: GlInterface) =
-
         gl <- GL.GetApi(gli.GetProcAddress)
 
         //Console.WriteLine(gl.GetStringS(StringName.Version))
@@ -151,17 +155,25 @@ type Viewport3D(ctx: EditorContext, host: IViewportHost) as this =
         //gridPlane <- GridPlane(gl)
         
         initalized <- true
-        materials <- ScenicEditorMaterials.Create gl
+        
+        // TODO renable.
+        //materials <- ScenicEditorMaterials.Create gl
         
         host.ViewportLoaded(gl)
+        
+        stopwatch.Start()
 
     override this.OnOpenGlRender(gli, fb) =
+        let ct = stopwatch.Elapsed
+        let dt = (ct - lastFrameTime).TotalSeconds |> float32
+        lastFrameTime <- ct
+        
         gl.Clear(ClearBufferMask.ColorBufferBit ||| ClearBufferMask.DepthBufferBit)
         gl.Viewport(0, 0, this.Bounds.Width |> uint, this.Bounds.Height |> uint)
 
         camera.SetAspectRatio((this.Bounds.Width |> float32) / (this.Bounds.Height |> float32))
 
-        let dt = 1f / 60f
+        //let dt = 1f / 60f
 
         this.HandleInput(dt)
         camera.Commit()
@@ -170,7 +182,7 @@ type Viewport3D(ctx: EditorContext, host: IViewportHost) as this =
 
         let projection = camera.ProjectionMatrix
 
-        host.RenderScene(gl, view, projection)
+        host.RenderScene(gl, dt, view, projection)
         
         Dispatcher.UIThread.Post(this.InvalidateVisual, DispatcherPriority.Background)
 

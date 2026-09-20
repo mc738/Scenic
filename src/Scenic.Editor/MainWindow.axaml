@@ -29,6 +29,9 @@
             <MenuItem Header="_Turn-based tactics">
                 <MenuItem Header="Level editor" Click="OpenTBTLeveEditor"></MenuItem>
             </MenuItem>
+            <MenuItem Header="_Animations">
+                <MenuItem Header="Animation editor" Click="OpenAnimationEditor"></MenuItem>
+            </MenuItem>
             <MenuItem Header="_About"></MenuItem>
         </Menu>
         <Border Padding="5" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Grid.Row="1">

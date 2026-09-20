@@ -28,12 +28,15 @@ module private Internal =
         ({ Items =
             [ { Name = "Position"
                 ShaderName = "uPos"
+                Type = VertexAttributeEncodingType.Float
                 Size = 3 }
               { Name = "Normal"
                 ShaderName = "uNormal"
+                Type = VertexAttributeEncodingType.Float
                 Size = 3 }
               { Name = "UV"
                 ShaderName = "uUv"
+                Type = VertexAttributeEncodingType.Float
                 Size = 2 } ] }
         : VertexLayout)
 
@@ -109,7 +112,7 @@ type TBTLevelEditorView(ctx: EditorContext, parentWindow: Window) as this =
             
             ()
 
-        member this.RenderScene(gl, view, projection) =
+        member this.RenderScene(gl, dt, view, projection) =
             gl.Enable(EnableCap.Blend)
             gl.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha)
 
